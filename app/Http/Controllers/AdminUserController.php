@@ -8,18 +8,37 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminUserController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
-        $pendingUsers = User::whereIn('role', ['pengguna', 'petugas', 'admin'])
-                            ->where('is_verified', false)
+        $search = $request->input('search');
+        $roleFilter = $request->input('role');
+
+        // 1. Mengambil akun registrasi mandiri yang BELUM diverifikasi (Tabel Atas)
+        $pendingUsers = User::where('is_verified', false)
+                            ->when($search, function ($query, $search) {
+                                return $query->where(function ($q) use ($search) {
+                                    $q->where('name', 'like', "%{$search}%")
+                                      ->orWhere('email', 'like', "%{$search}%");
+                                });
+                            })
                             ->orderBy('created_at', 'desc')
                             ->get();
 
-        $allUsers = User::whereIn('role', ['pengguna', 'petugas', 'admin'])
+        // 2. Mengambil akun yang SUDAH diverifikasi untuk tabel utama dengan filter role & pencarian (Tabel Bawah)
+        $allUsers = User::where('is_verified', true)
+                        ->when($roleFilter, function ($query, $roleFilter) {
+                            return $query->where('role', $roleFilter);
+                        })
+                        ->when($search, function ($query, $search) {
+                            return $query->where(function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%")
+                                  ->orWhere('email', 'like', "%{$search}%");
+                            });
+                        })
                         ->orderBy('created_at', 'desc')
                         ->get();
 
-        return view('admin.users.create', compact('pendingUsers', 'allUsers'));
+        return view('admin.users.create', compact('pendingUsers', 'allUsers', 'search', 'roleFilter'));
     }
 
     public function store(Request $request)
@@ -34,25 +53,32 @@ class AdminUserController extends Controller
         User::create([
             'name'        => $validated['name'],
             'email'       => $validated['email'],
-            'password'    => $validated['password'], 
+            'password'    => Hash::make($validated['password']),
             'role'        => $validated['role'],
-            'is_verified' => true,
+            'is_verified' => true, // Akun yang dibuat langsung oleh admin otomatis terverifikasi
         ]);
 
-        return redirect()->route('admin.users.create')->with('success', 'Akun pengguna berhasil didaftarkan.');
+        return redirect()->route('admin.users.create')->with('success', 'Akun baru berhasil ditambahkan.');
     }
 
     public function verify(User $user)
     {
         $user->update(['is_verified' => true]);
 
-        return redirect()->back()->with('success', 'Akun pengguna ' . $user->name . ' berhasil diverifikasi.');
+        return redirect()->back()->with('success', 'Akun ' . $user->name . ' berhasil diverifikasi.');
     }
 
     public function reject(User $user)
     {
         $user->delete();
 
-        return redirect()->back()->with('success', 'Pendaftaran akun ' . $user->name . ' telah ditolak dan dihapus.');
+        return redirect()->back()->with('success', 'Pendaftaran akun ' . $user->name . ' telah ditolak.');
+    }
+
+    public function destroy(User $user)
+    {
+        $user->delete();
+
+        return redirect()->back()->with('success', 'Akun berhasil dihapus.');
     }
 }

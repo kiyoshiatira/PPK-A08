@@ -96,7 +96,6 @@
         </div>
         <nav class="nav-menu">
             <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard admin</a>
-            <a href="{{ route('admin.petugas.index') }}" class="{{ request()->routeIs('admin.petugas.*') ? 'active' : '' }}">Akun Petugas</a>
             <a href="{{ route('admin.users.create') }}">Akun Pengguna</a> 
             <a href="#">Fasilitas</a>
             <a href="#">Reservasi</a>

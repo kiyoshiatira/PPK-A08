@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminPetugasController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -29,6 +30,9 @@ Route::middleware('auth')->group(function () {
 
         Route::patch('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
         Route::delete('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
+
+        Route::get('/petugas', [AdminPetugasController::class, 'index'])->name('petugas.index');
+        Route::post('/petugas', [AdminPetugasController::class, 'store'])->name('petugas.store');
         
     });
 

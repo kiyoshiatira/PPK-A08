@@ -27,6 +27,27 @@ class AuthController extends Controller
         return back()
             ->withErrors(['email' => 'Email atau kata sandi salah.'])
             ->onlyInput('email');
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            return back()
+                ->withErrors(['email' => 'Email atau kata sandi salah.'])
+                ->onlyInput('email');
+        }
+
+        if (! Auth::user()->is_verified) {
+            Auth::logout();
+
+            return back()
+                ->withErrors(['email' => 'Akun kamu masih menunggu verifikasi admin. Coba lagi nanti.'])
+                ->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.dashboard'); 
+        }
+
+        return redirect()->intended(route('dashboard'));
     }
 
     public function logout(Request $request)

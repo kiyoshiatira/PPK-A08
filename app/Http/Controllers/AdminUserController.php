@@ -10,7 +10,16 @@ class AdminUserController extends Controller
 {
     public function create()
     {
-        return view('admin.users.create');
+        $pendingUsers = User::whereIn('role', ['pengguna', 'mahasiswa', 'dosen', 'staf'])
+                        ->where('is_verified', false)
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+
+        $allUsers = User::whereIn('role', ['mahasiswa', 'dosen', 'staf'])
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+
+        return view('admin.users.create', compact('pendingUsers', 'allUsers'));
     }
 
     public function store(Request $request)
@@ -27,7 +36,7 @@ class AdminUserController extends Controller
             'email'       => $validated['email'],
             'password'    => $validated['password'], 
             'role'        => $validated['role'],
-            'is_verified' => true,
+            'is_verified' => true, 
         ]);
 
         return redirect()->route('admin.users.create')->with('success', 'Akun pengguna berhasil didaftarkan.');

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminUserController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -14,7 +15,3 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
-
-Route::get('/forgot-password', function () {
-    return 'Halaman lupa kata sandi — belum dibikin';
-})->name('password.request');

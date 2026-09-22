@@ -97,7 +97,7 @@
         <nav class="nav-menu">
             <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard admin</a>
             <a href="{{ route('admin.users.create') }}">Akun Pengguna</a> 
-            <a href="#">Fasilitas</a>
+            <a href="{{ route('admin.facilities.index') }}" class="{{ request()->routeIs('admin.facilities.*') ? 'active' : '' }}">Fasilitas</a>
             <a href="#">Reservasi</a>
             <a href="#">Laporan</a>
             <a href="#">Rekap</a>

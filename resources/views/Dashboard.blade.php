@@ -17,7 +17,7 @@
         <div class="space-x-6 text-sm font-medium">
             <a href="#" class="text-black">Beranda</a>
             <a href="#" class="text-gray-500 hover:text-black">Fasilitas</a>
-            <a href="#" class="text-gray-500 hover:text-black">Masuk</a>
+            <a href="{{ route('login') }}" class="text-gray-500 hover:text-black">Masuk</a>
         </div>
     </nav>
 

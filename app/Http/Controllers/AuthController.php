@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -19,11 +22,13 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('dashboard'));
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+            return back()
+                ->withErrors(['email' => 'Email atau kata sandi salah.'])
+                ->onlyInput('email');
         }
 
+<<<<<<< HEAD
         return back()
             ->withErrors(['email' => 'Email atau kata sandi salah.'])
             ->onlyInput('email');
@@ -33,6 +38,9 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
+=======
+        // Akun hasil registrasi mandiri wajib diverifikasi admin dulu (Story #15)
+>>>>>>> 1a3dff9d4a7edb4715cd1deaf5ae3acd0e93902e
         if (! Auth::user()->is_verified) {
             Auth::logout();
 
@@ -42,11 +50,14 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+<<<<<<< HEAD
 
         if (Auth::user()->role === 'admin') {
             return redirect()->route('admin.dashboard'); 
         }
 
+=======
+>>>>>>> 1a3dff9d4a7edb4715cd1deaf5ae3acd0e93902e
         return redirect()->intended(route('dashboard'));
     }
 
@@ -57,5 +68,31 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    public function showRegister()
+    {
+        return view('auth.register');
+    }
+
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ]);
+
+        User::create([
+            'name'        => $validated['name'],
+            'email'       => $validated['email'],
+            'password'    => Hash::make($validated['password']),
+            'role'        => 'pengguna',
+            'is_verified' => false,
+        ]);
+
+        return redirect()
+            ->route('login')
+            ->with('status', 'Registrasi berhasil! Akun kamu menunggu verifikasi admin sebelum bisa dipakai login.');
     }
 }

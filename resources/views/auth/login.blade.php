@@ -77,7 +77,7 @@
                         <input type="checkbox" name="remember" class="mr-2 rounded border-gray-300">
                         Ingat saya
                     </label>
-                    <a href="{{ route('password.request') }}" class="text-sm text-gray-500 hover:text-black">
+                    <a href="#" class="text-sm text-gray-500 hover:text-black">
                         Lupa kata sandi?
                     </a>
                 </div>
@@ -92,7 +92,7 @@
 
             <p class="text-center text-sm text-gray-500 mt-6">
                 Belum punya akun?
-                <a href="{{ route('register') }}" class="text-gray-900 font-semibold hover:underline">Daftar</a>
+                <a href="#" class="text-gray-900 font-semibold hover:underline">Daftar</a>
             </p>
         </div>
     </main>

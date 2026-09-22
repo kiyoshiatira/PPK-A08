@@ -28,19 +28,6 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
-<<<<<<< HEAD
-        return back()
-            ->withErrors(['email' => 'Email atau kata sandi salah.'])
-            ->onlyInput('email');
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-            return back()
-                ->withErrors(['email' => 'Email atau kata sandi salah.'])
-                ->onlyInput('email');
-        }
-
-=======
-        // Akun hasil registrasi mandiri wajib diverifikasi admin dulu (Story #15)
->>>>>>> 1a3dff9d4a7edb4715cd1deaf5ae3acd0e93902e
         if (! Auth::user()->is_verified) {
             Auth::logout();
 
@@ -50,16 +37,12 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
-<<<<<<< HEAD
-
         if (Auth::user()->role === 'admin') {
             return redirect()->route('admin.dashboard'); 
         }
-
-=======
->>>>>>> 1a3dff9d4a7edb4715cd1deaf5ae3acd0e93902e
         return redirect()->intended(route('dashboard'));
     }
+    
 
     public function logout(Request $request)
     {

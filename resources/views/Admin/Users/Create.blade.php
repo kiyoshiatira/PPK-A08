@@ -65,9 +65,27 @@
                         <td><span class="user-email">{{ $user->email }}</span></td>
                         <td><span class="text-gray">{{ $user->created_at->format('d M Y') }}</span></td>
                         <td>
-                            <!-- URL ini nantinya diarahkan ke route verifikasi (FR-15) -->
-                            <a href="#" class="action-link" style="color: #2e7d32;">Verifikasi</a> · 
-                            <a href="#" class="action-link" style="color: #c62828;">Tolak</a>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <!-- Tombol Verifikasi -->
+                                <form action="{{ route('admin.users.verify', $user->id) }}" method="POST" style="margin: 0;">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="action-link" style="background: none; border: none; padding: 0; color: #2e7d32; cursor: pointer; font-size: 13px;" onclick="return confirm('Verifikasi akun {{ $user->name }}?')">
+                                        Verifikasi
+                                    </button>
+                                </form>
+        
+                                <span style="color: #666;">·</span>
+        
+                                <!-- Tombol Tolak -->
+                                <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" style="margin: 0;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="action-link" style="background: none; border: none; padding: 0; color: #c62828; cursor: pointer; font-size: 13px;" onclick="return confirm('Tolak dan hapus pendaftaran akun {{ $user->name }}?')">
+                                        Tolak
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -134,9 +152,9 @@
                 <label class="form-label" for="role">Peran</label>
                 <select id="role" name="role" class="form-control" required>
                     <option value="" disabled selected>Pilih peran pengguna</option>
-                    <option value="mahasiswa">Mahasiswa</option>
-                    <option value="dosen">Dosen</option>
-                    <option value="staf">Staf</option>
+                    <option value="pengguna">Pengguna (Mahasiswa/Dosen/Staf)</option>
+                    <option value="petugas">Petugas</option>
+                    <option value="admin">Admin</option>
                 </select>
             </div>
 

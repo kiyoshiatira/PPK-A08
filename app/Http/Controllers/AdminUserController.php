@@ -10,12 +10,12 @@ class AdminUserController extends Controller
 {
     public function create()
     {
-        $pendingUsers = User::whereIn('role', ['pengguna', 'mahasiswa', 'dosen', 'staf'])
-                        ->where('is_verified', false)
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+        $pendingUsers = User::whereIn('role', ['pengguna', 'petugas', 'admin'])
+                            ->where('is_verified', false)
+                            ->orderBy('created_at', 'desc')
+                            ->get();
 
-        $allUsers = User::whereIn('role', ['mahasiswa', 'dosen', 'staf'])
+        $allUsers = User::whereIn('role', ['pengguna', 'petugas', 'admin'])
                         ->orderBy('created_at', 'desc')
                         ->get();
 
@@ -28,7 +28,7 @@ class AdminUserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6',
-            'role'     => 'required|in:mahasiswa,dosen,staf',
+            'role'     => 'required|in:pengguna,petugas,admin',
         ]);
 
         User::create([
@@ -36,9 +36,23 @@ class AdminUserController extends Controller
             'email'       => $validated['email'],
             'password'    => $validated['password'], 
             'role'        => $validated['role'],
-            'is_verified' => true, 
+            'is_verified' => true,
         ]);
 
         return redirect()->route('admin.users.create')->with('success', 'Akun pengguna berhasil didaftarkan.');
+    }
+
+    public function verify(User $user)
+    {
+        $user->update(['is_verified' => true]);
+
+        return redirect()->back()->with('success', 'Akun pengguna ' . $user->name . ' berhasil diverifikasi.');
+    }
+
+    public function reject(User $user)
+    {
+        $user->delete();
+
+        return redirect()->back()->with('success', 'Pendaftaran akun ' . $user->name . ' telah ditolak dan dihapus.');
     }
 }

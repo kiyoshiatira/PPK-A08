@@ -26,6 +26,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
         Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+
+        Route::patch('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
+        Route::delete('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
         
     });
 

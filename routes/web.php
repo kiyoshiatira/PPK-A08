@@ -14,3 +14,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
+
+Route::get('/forgot-password', function () {
+    return 'Halaman lupa kata sandi — belum dibikin';
+})->name('password.request');

@@ -97,4 +97,32 @@ class PetugasReservationController extends Controller
 
         return back()->with('success', 'Reservasi telah ditolak.');
     }
+
+    /**
+     * FR-10: Pembatalan Darurat oleh Petugas
+     * Membatalkan reservasi yang sudah Approved dengan alasan wajib
+     */
+    public function emergencyCancel(Request $request, Reservation $reservation)
+    {
+        // 1. Validasi status: hanya yang Approved yang bisa dibatalkan darurat
+        if ($reservation->status !== 'Approved') {
+            return back()->withErrors(['msg' => 'Hanya reservasi yang sudah disetujui (Approved) yang dapat dibatalkan secara darurat.']);
+        }
+
+        // 2. Validasi input: alasan pembatalan wajib diisi
+        $request->validate([
+            'cancel_reason' => 'required|string|max:500',
+        ], [
+            'cancel_reason.required' => 'Alasan pembatalan darurat wajib diisi.',
+        ]);
+
+        // 3. Update status menjadi Canceled
+        $reservation->update([
+            'status'                     => 'Canceled',
+            'rejection_or_cancel_reason' => $request->input('cancel_reason'),
+            'processed_by'               => Auth::id(),
+        ]);
+
+        return back()->with('success', 'Reservasi berhasil dibatalkan secara darurat.');
+    }
 }

@@ -131,6 +131,12 @@
                                     <!-- Tombol Buka Modal Tolak -->
                                     <button type="button" class="btn-reject" onclick="openRejectModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">Tolak</button>
                                 </div>
+                            @elseif($res->status === 'Approved')
+                                <div class="btn-action-group" style="justify-content: flex-end;">
+                                    <button type="button" class="btn-reject" style="background: #e65100;" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
+                                        Batalkan (Darurat)
+                                    </button>
+                                </div>
                             @else
                                 <span style="color: #999; font-size: 12px;">Diproses oleh: {{ $res->processor->name ?? 'Sistem' }}</span>
                             @endif
@@ -154,7 +160,7 @@
     </div>
 </div>
 
-<!-- Modal Form Penolakan (Reject) -->
+<!-- Modal Form Penolakan (Reject Pending) -->
 <div id="rejectModal" class="modal-backdrop">
     <div class="modal-box">
         <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: #111;">Tolak Permohonan Reservasi</h3>
@@ -166,12 +172,35 @@
             
             <div style="margin-bottom: 16px;">
                 <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #333;">Alasan Penolakan <span style="color:red;">*</span></label>
-                <textarea name="reason" rows="3" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 10px; font-size: 13px; font-family: inherit;" placeholder="Contoh: Jadwal bentrok dengan acara akademik kampus / Fasilitas tidak dapat digunakan..."></textarea>
+                <textarea name="reason" rows="3" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 10px; font-size: 13px; font-family: inherit;" placeholder="Contoh: Jadwal bentrok dengan acara akademik kampus..."></textarea>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" onclick="closeRejectModal()" style="padding: 8px 14px; background: #e0e0e0; border: none; border-radius: 4px; font-size: 13px; cursor: pointer;">Batal</button>
                 <button type="submit" style="padding: 8px 16px; background: #d32f2f; color: #fff; border: none; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer;">Tolak Reservasi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Form Pembatalan Darurat (FR-10) -->
+<div id="cancelModal" class="modal-backdrop">
+    <div class="modal-box">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px; color: #e65100;">Pembatalan Darurat Reservasi</h3>
+        <p id="cancelModalDesc" style="font-size: 13px; color: #666; margin-bottom: 16px;"></p>
+
+        <form id="cancelForm" method="POST">
+            @csrf
+            @method('PATCH')
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #333;">Alasan Pembatalan Darurat <span style="color:red;">*</span></label>
+                <textarea name="cancel_reason" rows="3" required style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 10px; font-size: 13px; font-family: inherit;" placeholder="Contoh: Terjadi kebocoran atap lab mendadak / Listrik padam di gedung..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" onclick="closeCancelModal()" style="padding: 8px 14px; background: #e0e0e0; border: none; border-radius: 4px; font-size: 13px; cursor: pointer;">Tutup</button>
+                <button type="submit" style="padding: 8px 16px; background: #e65100; color: #fff; border: none; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer;">Batalkan Reservasi</button>
             </div>
         </form>
     </div>
@@ -190,6 +219,20 @@
 
     function closeRejectModal() {
         document.getElementById('rejectModal').style.display = 'none';
+    }
+
+    function openCancelModal(id, facilityName, userName) {
+        const modal = document.getElementById('cancelModal');
+        const form = document.getElementById('cancelForm');
+        const desc = document.getElementById('cancelModalDesc');
+
+        form.action = `/petugas/reservations/${id}/cancel`;
+        desc.innerText = `Membatalkan reservasi yang SUDAH DISETUJUI untuk fasilitas ${facilityName} oleh pemohon ${userName}.`;
+        modal.style.display = 'flex';
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelModal').style.display = 'none';
     }
 </script>
 @endsection

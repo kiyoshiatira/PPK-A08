@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [PetugasReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [PetugasReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [PetugasReservationController::class, 'reject'])->name('reservations.reject');
+        Route::patch('/reservations/{reservation}/cancel', [PetugasReservationController::class, 'emergencyCancel'])->name('reservations.cancel');
     });
 
     Route::middleware(['checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {

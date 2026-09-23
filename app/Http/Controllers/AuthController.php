@@ -28,7 +28,6 @@ class AuthController extends Controller
                 ->onlyInput('email');
         }
 
-        // Akun hasil registrasi mandiri wajib diverifikasi admin dulu (Story #15)
         if (! Auth::user()->is_verified) {
             Auth::logout();
 
@@ -38,8 +37,12 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.dashboard'); 
+        }
         return redirect()->intended(route('dashboard'));
     }
+    
 
     public function logout(Request $request)
     {

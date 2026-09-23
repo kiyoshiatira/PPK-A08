@@ -6,7 +6,15 @@ use Carbon\Carbon;
 
 class Facility extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'type',
+        'location',
+        'capacity',
+        'description',
+        'photo',
+        'status'
+    ];
 
     public function reservations()
     {

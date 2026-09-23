@@ -81,7 +81,11 @@
             @foreach($facilities as $facility)
             <div class="bg-white border rounded-xl p-4 hover:shadow-md transition">
                 <!-- Image Placeholder -->
-                <div class="bg-gray-200 h-48 rounded-lg mb-4 w-full"></div>
+                @if($facility->photo)
+                    <img src="{{ asset('storage/' . $facility->photo) }}" alt="{{ $facility->name }}" class="h-48 w-full object-cover rounded-lg mb-4">
+                @else
+                    <div class="bg-gray-200 h-48 rounded-lg mb-4 w-full"></div>
+                @endif
                 
                 <h3 class="font-bold text-lg">{{ $facility->name }}</h3>
                 <p class="text-sm text-gray-500 mb-6">{{ $facility->location }} · {{ $facility->capacity }} orang</p>

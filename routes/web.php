@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminFacilityController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -15,6 +17,27 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register.attempt');
 });
 
-Route::post('/logout', [AuthController::class, 'logout'])
-    ->middleware('auth')
-    ->name('logout');
+Route::middleware('auth')->group(function () {
+    
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::middleware(['checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {
+        
+        Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+
+        Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+
+        Route::patch('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
+        Route::delete('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
+
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+
+        Route::get('/facilities', [AdminFacilityController::class, 'index'])->name('facilities.index');
+        Route::post('/facilities', [AdminFacilityController::class, 'store'])->name('facilities.store');
+        Route::put('/facilities/{facility}', [AdminFacilityController::class, 'update'])->name('facilities.update');
+        Route::delete('/facilities/{facility}', [AdminFacilityController::class, 'destroy'])->name('facilities.destroy');
+
+    });
+
+});

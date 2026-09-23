@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminFacilityController;
+use App\Http\Controllers\PetugasReservationController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -20,6 +21,13 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Group Route untuk Petugas & Admin
+    Route::middleware(['checkrole:petugas,admin'])->prefix('petugas')->name('petugas.')->group(function () {
+        Route::get('/reservations', [PetugasReservationController::class, 'index'])->name('reservations.index');
+        Route::patch('/reservations/{reservation}/approve', [PetugasReservationController::class, 'approve'])->name('reservations.approve');
+        Route::patch('/reservations/{reservation}/reject', [PetugasReservationController::class, 'reject'])->name('reservations.reject');
+    });
 
     Route::middleware(['checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {
         

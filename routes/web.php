@@ -9,6 +9,8 @@ use App\Http\Controllers\AdminFacilityController;
 use App\Http\Controllers\PetugasReservationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserReservationController;
+use App\Http\Controllers\FacilityController;
+use App\Http\Controllers\ReservationController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -66,3 +68,6 @@ Route::middleware('auth')->group(function () {
     });
 
 });
+Route::get('/fasilitas/{facility}', [FacilityController::class, 'show'])->name('facilities.show');
+
+Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');

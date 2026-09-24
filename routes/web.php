@@ -7,6 +7,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminFacilityController;
 use App\Http\Controllers\PetugasReservationController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\UserReservationController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -19,8 +21,22 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::get('/reservations', [UserReservationController::class, 'index'])
+    ->name('reservations.index');
+
+    // FR-06 & FR-07 - Laporan Kerusakan
+    Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
+    Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // FR-08 - Antrean Laporan Petugas
+    Route::get('/petugas/reports', [ReportController::class, 'petugasQueue'])
+        ->middleware('checkrole:petugas,admin')
+        ->name('petugas.reports.index');
+
 
     // Group Route untuk Petugas & Admin
     Route::middleware(['checkrole:petugas,admin'])->prefix('petugas')->name('petugas.')->group(function () {
@@ -31,7 +47,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware(['checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {
-        
+
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');

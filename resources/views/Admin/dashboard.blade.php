@@ -74,7 +74,7 @@
         <div class="stat-card">
             <div class="stat-label">Jumlah user</div>
             <div class="stat-value">{{ number_format($totalUsers, 0, ',', '.') }}</div>
-            <div class="stat-sub">+36 bulan ini</div>
+            <div class="stat-sub">+{{ $newUsersThisMonth }} bulan ini</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Fasilitas</div>
@@ -104,18 +104,16 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Akun pengguna diverifikasi</td>
-                    <td class="time-col">5 menit lalu</td>
-                </tr>
-                <tr>
-                    <td>Fasilitas baru ditambahkan</td>
-                    <td class="time-col">42 menit lalu</td>
-                </tr>
-                <tr>
-                    <td>Reservasi disetujui</td>
-                    <td class="time-col">1 jam lalu</td>
-                </tr>
+                @forelse($recentActivities as $activity)
+                    <tr>
+                        <td>{{ $activity['description'] }}</td>
+                        <td class="time-col">{{ $activity['time']->diffForHumans() }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="2" style="text-align: center; color: #888;">Belum ada aktivitas tercatat.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -125,7 +123,7 @@
         <div class="section-header">Perlu perhatian</div>
         <div class="attention-box">
             <div>{{ $pendingUsersCount }} akun menunggu verifikasi</div>
-            <div>4 fasilitas dalam perbaikan</div>
+            <div>{{ $facilitiesInRepair }} fasilitas dalam perbaikan</div>
             <div>{{ $unhandledReports }} laporan belum ditangani</div>
         </div>
     </div>

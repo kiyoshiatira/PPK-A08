@@ -14,10 +14,18 @@
             <div class="w-8 h-8 bg-gray-900 rounded"></div>
             <span class="font-bold text-lg tracking-wide">RUANG KAMPUS</span>
         </div>
-        <div class="space-x-6 text-sm font-medium">
-            <a href="#" class="text-black">Beranda</a>
+        <div class="space-x-6 text-sm font-medium flex items-center">
+            <a href="{{ route('dashboard') }}" class="text-black">Beranda</a>
             <a href="#" class="text-gray-500 hover:text-black">Fasilitas</a>
-            <a href="{{ route('login') }}" class="text-gray-500 hover:text-black">Masuk</a>
+            @auth
+                <span class="text-gray-500">{{ auth()->user()->name }}</span>
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="text-gray-500 hover:text-black">Keluar</button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="text-gray-500 hover:text-black">Masuk</a>
+            @endauth
         </div>
     </nav>
 
@@ -79,24 +87,24 @@
         <!-- Facility Grid -->
         <div class="grid grid-cols-3 gap-6">
             @foreach($facilities as $facility)
-            <div class="bg-white border rounded-xl p-4 hover:shadow-md transition">
+            <a href="{{ route('facilities.show', $facility) }}" class="block bg-white border rounded-xl p-4 hover:shadow-md transition">
                 <!-- Image Placeholder -->
                 @if($facility->photo)
                     <img src="{{ asset('storage/' . $facility->photo) }}" alt="{{ $facility->name }}" class="h-48 w-full object-cover rounded-lg mb-4">
                 @else
                     <div class="bg-gray-200 h-48 rounded-lg mb-4 w-full"></div>
                 @endif
-                
+
                 <h3 class="font-bold text-lg">{{ $facility->name }}</h3>
                 <p class="text-sm text-gray-500 mb-6">{{ $facility->location }} · {{ $facility->capacity }} orang</p>
-                
+
                 <div class="flex justify-between items-center text-sm">
                     <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">
                         Tersedia {{ $facility->available_slots }} slot
                     </span>
                     <span class="text-gray-500">07.00 — 20.00</span>
                 </div>
-            </div>
+            </a>
             @endforeach
         </div>
 
@@ -105,6 +113,9 @@
             {{ $facilities->links() }}
         </div>
     </main>
+
+    <!-- Thin footer bar -->
+    <div class="h-1.5 bg-gray-900 w-full"></div>
 
 </body>
 </html>

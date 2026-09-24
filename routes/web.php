@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminFacilityController;
 use App\Http\Controllers\PetugasReservationController;
+use App\Http\Controllers\PetugasReportController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -24,10 +25,16 @@ Route::middleware('auth')->group(function () {
 
     // Group Route untuk Petugas & Admin
     Route::middleware(['checkrole:petugas,admin'])->prefix('petugas')->name('petugas.')->group(function () {
+        // FR-09: Approve / Reject Reservasi
         Route::get('/reservations', [PetugasReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [PetugasReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [PetugasReservationController::class, 'reject'])->name('reservations.reject');
+        // FR-10: Pembatalan Darurat
         Route::patch('/reservations/{reservation}/cancel', [PetugasReservationController::class, 'emergencyCancel'])->name('reservations.cancel');
+
+        // FR-11: Kelola Status Laporan Kerusakan
+        Route::get('/reports', [PetugasReportController::class, 'index'])->name('reports.index');
+        Route::patch('/reports/{report}/status', [PetugasReportController::class, 'updateStatus'])->name('reports.updateStatus');
     });
 
     Route::middleware(['checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {

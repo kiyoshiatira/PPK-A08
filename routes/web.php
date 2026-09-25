@@ -6,6 +6,12 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminFacilityController;
+use App\Http\Controllers\PetugasReservationController;
+use App\Http\Controllers\PetugasReportController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\UserReservationController;
+use App\Http\Controllers\FacilityController;
+use App\Http\Controllers\ReservationController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -18,11 +24,33 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    Route::get('/reservations', [UserReservationController::class, 'index'])
+    ->name('reservations.index');
+
+    // FR-06 & FR-07 - Laporan Kerusakan (Sisi Pengguna)
+    Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
+    Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // Group Route untuk Petugas & Admin
+    Route::middleware(['checkrole:petugas,admin'])->prefix('petugas')->name('petugas.')->group(function () {
+        // FR-09: Approve / Reject Reservasi
+        Route::get('/reservations', [PetugasReservationController::class, 'index'])->name('reservations.index');
+        Route::patch('/reservations/{reservation}/approve', [PetugasReservationController::class, 'approve'])->name('reservations.approve');
+        Route::patch('/reservations/{reservation}/reject', [PetugasReservationController::class, 'reject'])->name('reservations.reject');
+        // FR-10: Pembatalan Darurat
+        Route::patch('/reservations/{reservation}/cancel', [PetugasReservationController::class, 'emergencyCancel'])->name('reservations.cancel');
+
+        // FR-11: Kelola Status Laporan Kerusakan
+        Route::get('/reports', [PetugasReportController::class, 'index'])->name('reports.index');
+        Route::patch('/reports/{report}/status', [PetugasReportController::class, 'updateStatus'])->name('reports.updateStatus');
+    });
+
     Route::middleware(['checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {
-        
+
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 
         Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
@@ -41,3 +69,6 @@ Route::middleware('auth')->group(function () {
     });
 
 });
+Route::get('/fasilitas/{facility}', [FacilityController::class, 'show'])->name('facilities.show');
+
+Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');

@@ -32,7 +32,15 @@
         .logo-box { width: 22px; height: 22px; background-color: #111; border-radius: 4px; }
         .brand-text { font-weight: 700; font-size: 15px; letter-spacing: 0.5px; }
 
-        /* Menu Navigasi Horizontal Sejajar ke Kanan */
+        /* Wadah Kanan (Menu + Logout) */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            height: 100%;
+        }
+
+        /* Menu Navigasi Horizontal */
         .nav-menu { 
             display: flex !important; 
             flex-direction: row !important;
@@ -61,6 +69,25 @@
         .nav-menu a:hover, .nav-menu a.active { 
             color: #111 !important; 
             border-bottom: 2px solid #111 !important; 
+        }
+
+        /* Tombol Logout */
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #e4e4e7;
+            color: #c62828;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            align-items: center;
+        }
+        .btn-logout:hover {
+            background: #ffebee;
+            border-color: #ffcdd2;
         }
 
         /* Konten Utama */
@@ -94,14 +121,21 @@
             <div class="logo-box"></div>
             <div class="brand-text">RUANG KAMPUS</div>
         </div>
-        <nav class="nav-menu">
-            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard admin</a>
-            <a href="{{ route('admin.users.create') }}">Akun Pengguna</a> 
-            <a href="{{ route('admin.facilities.index') }}" class="{{ request()->routeIs('admin.facilities.*') ? 'active' : '' }}">Fasilitas</a>
-            <a href="{{ route('petugas.reservations.index') }}" class="{{ request()->routeIs('petugas.reservations.*') ? 'active' : '' }}">Reservasi</a>
-            <a href="#">Laporan</a>
-            <a href="#">Rekap</a>
-        </nav>
+        <div class="header-right">
+            <nav class="nav-menu">
+                <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard admin</a>
+                <a href="{{ route('admin.users.create') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Akun Pengguna</a>
+                <a href="{{ route('admin.facilities.index') }}" class="{{ request()->routeIs('admin.facilities.*') ? 'active' : '' }}">Fasilitas</a>
+                <a href="{{ route('petugas.reservations.index') }}" class="{{ request()->routeIs('petugas.reservations.*') ? 'active' : '' }}">Reservasi</a>
+                <a href="#">Laporan</a>
+                <a href="#">Rekap</a>
+            </nav>
+
+            <form action="{{ route('logout') }}" method="POST" style="margin: 0; height: 100%; display: flex; align-items: center;">
+                @csrf
+                <button type="submit" class="btn-logout">Logout</button>
+            </form>
+        </div>
     </header>
 
     <!-- Area Konten Dinamis -->

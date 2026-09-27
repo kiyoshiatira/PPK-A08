@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservation;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -68,6 +69,15 @@ class PetugasReservationController extends Controller
             'processed_by' => Auth::id(),
         ]);
 
+        // FR-12: Buat notifikasi untuk Pengguna
+        Notification::create([
+            'user_id' => $reservation->user_id,
+            'title'   => 'Reservasi Disetujui',
+            'message' => "Reservasi Anda untuk fasilitas {$reservation->facility->name} pada tanggal {$reservation->reservation_date} ({$reservation->start_time} - {$reservation->end_time}) telah disetujui oleh petugas.",
+            'type'    => 'reservasi',
+            'link'    => route('reservations.index'),
+        ]);
+
         return back()->with('success', 'Reservasi berhasil disetujui.');
     }
 
@@ -93,6 +103,15 @@ class PetugasReservationController extends Controller
             'status'                     => 'Rejected',
             'rejection_or_cancel_reason' => $request->input('reason'),
             'processed_by'               => Auth::id(),
+        ]);
+
+        // FR-12: Buat notifikasi untuk Pengguna
+        Notification::create([
+            'user_id' => $reservation->user_id,
+            'title'   => 'Reservasi Ditolak',
+            'message' => "Reservasi Anda untuk fasilitas {$reservation->facility->name} ditolak. Alasan: {$request->input('reason')}",
+            'type'    => 'reservasi',
+            'link'    => route('reservations.index'),
         ]);
 
         return back()->with('success', 'Reservasi telah ditolak.');
@@ -121,6 +140,15 @@ class PetugasReservationController extends Controller
             'status'                     => 'Canceled',
             'rejection_or_cancel_reason' => $request->input('cancel_reason'),
             'processed_by'               => Auth::id(),
+        ]);
+
+        // FR-12: Buat notifikasi untuk Pengguna
+        Notification::create([
+            'user_id' => $reservation->user_id,
+            'title'   => 'Pembatalan Darurat Reservasi',
+            'message' => "Reservasi Anda untuk fasilitas {$reservation->facility->name} pada tanggal {$reservation->reservation_date} dibatalkan secara darurat oleh petugas. Alasan: {$request->input('cancel_reason')}",
+            'type'    => 'reservasi',
+            'link'    => route('reservations.index'),
         ]);
 
         return back()->with('success', 'Reservasi berhasil dibatalkan secara darurat.');

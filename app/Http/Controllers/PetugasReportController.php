@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Report;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -81,6 +82,22 @@ class PetugasReportController extends Controller
             'status'           => $newStatus,
             'resolution_notes' => $request->input('resolution_notes'),
             'processed_by'     => Auth::id(),
+        ]);
+
+        // FR-12: Buat notifikasi untuk Pengguna pelapor
+        $pesanNotif = match ($newStatus) {
+            'Diproses' => "Laporan kerusakan fasilitas {$report->facility->name} sedang ditangani oleh petugas.",
+            'Selesai'  => "Laporan kerusakan fasilitas {$report->facility->name} telah selesai ditangani. Catatan: {$request->input('resolution_notes')}",
+            'Ditolak'  => "Laporan kerusakan fasilitas {$report->facility->name} ditolak. Alasan: {$request->input('resolution_notes')}",
+            default    => "Status laporan kerusakan Anda diperbarui menjadi {$newStatus}.",
+        };
+
+        Notification::create([
+            'user_id' => $report->user_id,
+            'title'   => "Status Laporan: {$newStatus}",
+            'message' => $pesanNotif,
+            'type'    => 'laporan',
+            'link'    => route('reports.index'),
         ]);
 
         $pesan = match ($newStatus) {

@@ -117,6 +117,17 @@
         <nav class="nav-menu">
             <a href="{{ route('petugas.reservations.index') }}" class="{{ request()->routeIs('petugas.reservations.*') ? 'active' : '' }}">Antrean Reservasi</a>
             <a href="{{ route('petugas.reports.index') }}" class="{{ request()->routeIs('petugas.reports.*') ? 'active' : '' }}">Laporan Kerusakan</a>
+            <a href="{{ route('notifications.index') }}" class="{{ request()->routeIs('notifications.*') ? 'active' : '' }}" style="position:relative;">
+                Notifikasi
+                @php
+                    $unreadCount = \App\Models\Notification::where('user_id', Auth::id())->where('is_read', false)->count();
+                @endphp
+                @if($unreadCount > 0)
+                    <span style="background:#c62828; color:#fff; font-size:10px; font-weight:700; border-radius:10px; padding:1px 6px; margin-left:4px;">
+                        {{ $unreadCount }}
+                    </span>
+                @endif
+            </a>
         </nav>
         <div class="user-nav-area">
             <span style="font-size: 13px; font-weight: 600;">{{ Auth::user()->name }}</span>

@@ -10,6 +10,7 @@ use App\Http\Controllers\PetugasReservationController;
 use App\Http\Controllers\PetugasReportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserReservationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ReservationController;
 
@@ -34,6 +35,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
     Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // FR-12: Notifikasi Sistem
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
 
     // Group Route untuk Petugas & Admin
     Route::middleware(['checkrole:petugas,admin'])->prefix('petugas')->name('petugas.')->group(function () {

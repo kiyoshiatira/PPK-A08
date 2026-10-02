@@ -84,6 +84,25 @@ class PetugasReportController extends Controller
             'processed_by'     => Auth::id(),
         ]);
 
+        // SRS-12: Konsekuensi otomatis perubahan status fasilitas
+        // Laporan → Diproses: Fasilitas langsung jadi "Dalam Perbaikan"
+        // Laporan → Selesai/Ditolak: Fasilitas kembali "Aktif" HANYA JIKA
+        //   tidak ada laporan lain yang masih berstatus "Diproses" untuk fasilitas yang sama
+        if ($newStatus === 'Diproses') {
+            $report->facility->update(['status' => 'Dalam Perbaikan']);
+        } elseif (in_array($newStatus, ['Selesai', 'Ditolak'])) {
+            $masihAdaYangDiproses = \App\Models\Report::where('facility_id', $report->facility_id)
+                ->where('status', 'Diproses')
+                ->where('id', '!=', $report->id) // Kecualikan laporan yang baru saja diselesaikan
+                ->exists();
+
+            if (!$masihAdaYangDiproses) {
+                // Tidak ada laporan lain yang masih Diproses → fasilitas boleh kembali Aktif
+                $report->facility->update(['status' => 'Aktif']);
+            }
+            // Jika masih ada laporan lain yang Diproses → fasilitas tetap "Dalam Perbaikan"
+        }
+
         // FR-12: Buat notifikasi untuk Pengguna pelapor
         $pesanNotif = match ($newStatus) {
             'Diproses' => "Laporan kerusakan fasilitas {$report->facility->name} sedang ditangani oleh petugas.",

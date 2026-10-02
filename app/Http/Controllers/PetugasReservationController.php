@@ -172,37 +172,67 @@ class PetugasReservationController extends Controller
     /**
      * FR-10: Pembatalan Darurat oleh Petugas
      * Membatalkan reservasi yang sudah Approved dengan alasan wajib
+     * Menangani seluruh edge cases:
+     * - DB Transaction & row lock
+     * - Cegah pembatalan untuk kegiatan yang sudah selesai di masa lalu
+     * - Sanitasi alasan pembatalan darurat (tidak boleh hanya spasi)
+     * - Safe notification
      */
     public function emergencyCancel(Request $request, Reservation $reservation)
     {
-        // 1. Validasi status: hanya yang Approved yang bisa dibatalkan darurat
-        if ($reservation->status !== 'Approved') {
-            return back()->withErrors(['msg' => 'Hanya reservasi yang sudah disetujui (Approved) yang dapat dibatalkan secara darurat.']);
+        // Edge Case 1: Sanitasi alasan pembatalan darurat
+        $reason = trim($request->input('cancel_reason', ''));
+        if (empty($reason)) {
+            return back()->withErrors(['cancel_reason' => 'Alasan pembatalan darurat wajib diisi dan tidak boleh hanya berupa spasi.']);
         }
 
-        // 2. Validasi input: alasan pembatalan wajib diisi
-        $request->validate([
-            'cancel_reason' => 'required|string|max:500',
-        ], [
-            'cancel_reason.required' => 'Alasan pembatalan darurat wajib diisi.',
-        ]);
+        if (mb_strlen($reason) < 5) {
+            return back()->withErrors(['cancel_reason' => 'Alasan pembatalan darurat minimal 5 karakter agar informatif bagi pengguna.']);
+        }
 
-        // 3. Update status menjadi Canceled
-        $reservation->update([
-            'status'                     => 'Canceled',
-            'rejection_or_cancel_reason' => $request->input('cancel_reason'),
-            'processed_by'               => Auth::id(),
-        ]);
+        if (mb_strlen($reason) > 500) {
+            return back()->withErrors(['cancel_reason' => 'Alasan pembatalan darurat maksimal 500 karakter.']);
+        }
 
-        // FR-12: Buat notifikasi untuk Pengguna
-        Notification::create([
-            'user_id' => $reservation->user_id,
-            'title'   => 'Pembatalan Darurat Reservasi',
-            'message' => "Reservasi Anda untuk fasilitas {$reservation->facility->name} pada tanggal {$reservation->reservation_date} dibatalkan secara darurat oleh petugas. Alasan: {$request->input('cancel_reason')}",
-            'type'    => 'reservasi',
-            'link'    => route('reservations.index'),
-        ]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($reservation, $reason) {
+            $res = Reservation::lockForUpdate()->find($reservation->id);
 
-        return back()->with('success', 'Reservasi berhasil dibatalkan secara darurat.');
+            if (!$res) {
+                return back()->withErrors(['msg' => 'Reservasi tidak ditemukan.']);
+            }
+
+            // Edge Case 2: Pastikan status masih Approved
+            if ($res->status !== 'Approved') {
+                return back()->withErrors(['msg' => "Hanya reservasi yang sudah disetujui (Approved) yang dapat dibatalkan secara darurat. Status saat ini: '{$res->status}'."]);
+            }
+
+            // Edge Case 3: Cegah pembatalan darurat jika kegiatan sudah selesai di masa lalu
+            $endDateTime = \Carbon\Carbon::parse("{$res->reservation_date} {$res->end_time}");
+            if ($endDateTime->isPast()) {
+                return back()->withErrors([
+                    'msg' => 'Gagal membatalkan! Kegiatan reservasi ini sudah selesai dilaksanakan di masa lalu dan tidak dapat dibatalkan.'
+                ]);
+            }
+
+            // Update status menjadi Canceled
+            $res->update([
+                'status'                     => 'Canceled',
+                'rejection_or_cancel_reason' => $reason,
+                'processed_by'               => Auth::id(),
+            ]);
+
+            // Edge Case 4: Safe notification
+            if ($res->user) {
+                Notification::create([
+                    'user_id' => $res->user_id,
+                    'title'   => 'Pembatalan Darurat Reservasi',
+                    'message' => "Reservasi Anda untuk fasilitas {$res->facility->name} pada tanggal {$res->reservation_date} ({$res->start_time} - {$res->end_time}) dibatalkan secara darurat oleh petugas. Alasan: {$reason}",
+                    'type'    => 'reservasi',
+                    'link'    => route('reservations.index'),
+                ]);
+            }
+
+            return back()->with('success', "Reservasi fasilitas '{$res->facility->name}' berhasil dibatalkan secara darurat.");
+        });
     }
 }

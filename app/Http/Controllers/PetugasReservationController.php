@@ -31,90 +31,142 @@ class PetugasReservationController extends Controller
 
     /**
      * FR-09: Petugas Menyetujui (Approve) Reservasi
-     * Dengan validasi anti-bentrok jadwal di fasilitas yang sama
+     * Dengan penanganan seluruh edge cases:
+     * - DB Transaction & row lock (anti race condition)
+     * - Cegah approve reservasi masa lalu / kadaluwarsa
+     * - Cek status operasional fasilitas & laporan kerusakan berstatus Diproses
+     * - Cek bentrok jadwal (anti overlap)
+     * - Safe notification (user null safety)
      */
     public function approve(Reservation $reservation)
     {
-        // 1. Pastikan reservasi masih berstatus Pending
-        if ($reservation->status !== 'Pending') {
-            return back()->withErrors(['msg' => 'Hanya reservasi berstatus Pending yang dapat disetujui.']);
-        }
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($reservation) {
+            // Lock row untuk mencegah race condition antar petugas
+            $res = Reservation::lockForUpdate()->find($reservation->id);
 
-        // 2. Cek apakah fasilitas sedang aktif
-        if ($reservation->facility->status !== 'Aktif') {
-            return back()->withErrors(['msg' => 'Fasilitas ini sedang berstatus "' . $reservation->facility->status . '", tidak dapat disetujui.']);
-        }
+            if (!$res) {
+                return back()->withErrors(['msg' => 'Reservasi tidak ditemukan.']);
+            }
 
-        // 3. Logika Pencegahan Bentrok Jadwal (Anti Overlap)
-        // Bentrok jika: (start_baru < end_lama) AND (end_baru > start_lama)
-        $hasConflict = Reservation::where('facility_id', $reservation->facility_id)
-            ->where('reservation_date', $reservation->reservation_date)
-            ->where('status', 'Approved')
-            ->where('id', '!=', $reservation->id)
-            ->where(function ($query) use ($reservation) {
-                $query->where('start_time', '<', $reservation->end_time)
-                      ->where('end_time', '>', $reservation->start_time);
-            })
-            ->exists();
+            // Edge Case 1: Status sudah bukan Pending (misal sudah diproses petugas lain)
+            if ($res->status !== 'Pending') {
+                return back()->withErrors(['msg' => "Reservasi ini sudah diproses sebelumnya dengan status '{$res->status}'."]);
+            }
 
-        if ($hasConflict) {
-            return back()->withErrors([
-                'msg' => 'Gagal menyetujui! Sudah ada reservasi lain yang disetujui pada fasilitas dan jam tersebut (Jadwal Bentrok).'
+            // Edge Case 2: Waktu reservasi sudah lewat / kadaluwarsa (Expired)
+            $startDateTime = \Carbon\Carbon::parse("{$res->reservation_date} {$res->start_time}");
+            if ($startDateTime->isPast()) {
+                return back()->withErrors([
+                    'msg' => 'Gagal menyetujui! Waktu pelaksanaan reservasi sudah terlewat di masa lalu. Harap tolak reservasi ini.'
+                ]);
+            }
+
+            // Edge Case 3: Fasilitas tidak aktif
+            if ($res->facility->status !== 'Aktif') {
+                return back()->withErrors([
+                    'msg' => "Fasilitas '{$res->facility->name}' saat ini berstatus '{$res->facility->status}' dan tidak dapat disetujui."
+                ]);
+            }
+
+            // Edge Case 4: Ada laporan kerusakan yang sedang diproses pada fasilitas ini
+            $adaLaporanDiproses = \App\Models\Report::where('facility_id', $res->facility_id)
+                ->where('status', 'Diproses')
+                ->exists();
+            if ($adaLaporanDiproses) {
+                return back()->withErrors([
+                    'msg' => "Fasilitas '{$res->facility->name}' memiliki laporan kerusakan yang sedang 'Diproses'. Selesaikan perbaikan terlebih dahulu sebelum menyetujui reservasi."
+                ]);
+            }
+
+            // Edge Case 5: Pencegahan Bentrok Jadwal (Anti Overlap)
+            $hasConflict = Reservation::where('facility_id', $res->facility_id)
+                ->where('reservation_date', $res->reservation_date)
+                ->where('status', 'Approved')
+                ->where('id', '!=', $res->id)
+                ->where(function ($query) use ($res) {
+                    $query->where('start_time', '<', $res->end_time)
+                          ->where('end_time', '>', $res->start_time);
+                })
+                ->exists();
+
+            if ($hasConflict) {
+                return back()->withErrors([
+                    'msg' => 'Gagal menyetujui! Sudah ada reservasi lain yang disetujui pada fasilitas dan jam tersebut (Jadwal Bentrok).'
+                ]);
+            }
+
+            // Update status menjadi Approved & catat ID petugas
+            $res->update([
+                'status'       => 'Approved',
+                'processed_by' => Auth::id(),
             ]);
-        }
 
-        // 4. Update status menjadi Approved & catat ID petugas yang memproses
-        $reservation->update([
-            'status'       => 'Approved',
-            'processed_by' => Auth::id(),
-        ]);
+            // Edge Case 6: Safe notification (pastikan user masih ada di database)
+            if ($res->user) {
+                Notification::create([
+                    'user_id' => $res->user_id,
+                    'title'   => 'Reservasi Disetujui',
+                    'message' => "Reservasi Anda untuk fasilitas {$res->facility->name} pada tanggal {$res->reservation_date} ({$res->start_time} - {$res->end_time}) telah disetujui oleh petugas.",
+                    'type'    => 'reservasi',
+                    'link'    => route('reservations.index'),
+                ]);
+            }
 
-        // FR-12: Buat notifikasi untuk Pengguna
-        Notification::create([
-            'user_id' => $reservation->user_id,
-            'title'   => 'Reservasi Disetujui',
-            'message' => "Reservasi Anda untuk fasilitas {$reservation->facility->name} pada tanggal {$reservation->reservation_date} ({$reservation->start_time} - {$reservation->end_time}) telah disetujui oleh petugas.",
-            'type'    => 'reservasi',
-            'link'    => route('reservations.index'),
-        ]);
-
-        return back()->with('success', 'Reservasi berhasil disetujui.');
+            return back()->with('success', "Reservasi untuk fasilitas '{$res->facility->name}' berhasil disetujui.");
+        });
     }
 
     /**
      * FR-09: Petugas Menolak (Reject) Reservasi
+     * Dengan penanganan seluruh edge cases:
+     * - DB Transaction & row lock
+     * - Sanitasi alasan penolakan (tidak boleh spasi kosong)
+     * - Safe notification
      */
     public function reject(Request $request, Reservation $reservation)
     {
-        // 1. Pastikan status masih Pending
-        if ($reservation->status !== 'Pending') {
-            return back()->withErrors(['msg' => 'Hanya reservasi berstatus Pending yang dapat ditolak.']);
+        // Edge Case 7: Sanitasi input alasan penolakan (trim whitespace)
+        $reason = trim($request->input('reason', ''));
+        if (empty($reason)) {
+            return back()->withErrors(['reason' => 'Alasan penolakan wajib diisi dan tidak boleh hanya berupa spasi.']);
         }
 
-        // 2. Validasi alasan penolakan
-        $request->validate([
-            'reason' => 'required|string|max:500',
-        ], [
-            'reason.required' => 'Alasan penolakan wajib diisi.',
-        ]);
+        if (mb_strlen($reason) > 500) {
+            return back()->withErrors(['reason' => 'Alasan penolakan maksimal 500 karakter.']);
+        }
 
-        // 3. Update status menjadi Rejected & catat alasan serta petugas
-        $reservation->update([
-            'status'                     => 'Rejected',
-            'rejection_or_cancel_reason' => $request->input('reason'),
-            'processed_by'               => Auth::id(),
-        ]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($reservation, $reason) {
+            $res = Reservation::lockForUpdate()->find($reservation->id);
 
-        // FR-12: Buat notifikasi untuk Pengguna
-        Notification::create([
-            'user_id' => $reservation->user_id,
-            'title'   => 'Reservasi Ditolak',
-            'message' => "Reservasi Anda untuk fasilitas {$reservation->facility->name} ditolak. Alasan: {$request->input('reason')}",
-            'type'    => 'reservasi',
-            'link'    => route('reservations.index'),
-        ]);
+            if (!$res) {
+                return back()->withErrors(['msg' => 'Reservasi tidak ditemukan.']);
+            }
 
-        return back()->with('success', 'Reservasi telah ditolak.');
+            // Pastikan status masih Pending
+            if ($res->status !== 'Pending') {
+                return back()->withErrors(['msg' => "Hanya reservasi berstatus Pending yang dapat ditolak. Saat ini berstatus '{$res->status}'."]);
+            }
+
+            // Update status menjadi Rejected
+            $res->update([
+                'status'                     => 'Rejected',
+                'rejection_or_cancel_reason' => $reason,
+                'processed_by'               => Auth::id(),
+            ]);
+
+            // Safe notification
+            if ($res->user) {
+                Notification::create([
+                    'user_id' => $res->user_id,
+                    'title'   => 'Reservasi Ditolak',
+                    'message' => "Reservasi Anda untuk fasilitas {$res->facility->name} ditolak. Alasan: {$reason}",
+                    'type'    => 'reservasi',
+                    'link'    => route('reservations.index'),
+                ]);
+            }
+
+            return back()->with('success', "Reservasi untuk fasilitas '{$res->facility->name}' telah ditolak.");
+        });
     }
 
     /**

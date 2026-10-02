@@ -35,3 +35,5 @@ class UserSeeder extends Seeder
         ]);
     }
 }
+
+// conflict solving ketika 2 orang pengguna mencoba memesan fasilitas yang sama pada waktu yang sama, sistem akan menolak permintaan kedua dan memberikan pesan kesalahan kepada pengguna kedua.

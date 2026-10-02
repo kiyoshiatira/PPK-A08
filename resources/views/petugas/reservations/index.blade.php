@@ -132,10 +132,19 @@
                                     <button type="button" class="btn-reject" onclick="openRejectModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">Tolak</button>
                                 </div>
                             @elseif($res->status === 'Approved')
+                                @php
+                                    $isEventEnded = \Carbon\Carbon::parse("{$res->reservation_date} {$res->end_time}")->isPast();
+                                @endphp
                                 <div class="btn-action-group" style="justify-content: flex-end;">
-                                    <button type="button" class="btn-reject" style="background: #e65100;" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
-                                        Batalkan (Darurat)
-                                    </button>
+                                    @if($isEventEnded)
+                                        <span style="color: #2e7d32; font-size: 11px; font-weight: 600; background: #e8f5e9; padding: 4px 8px; border-radius: 4px; border: 1px solid #c8e6c9;">
+                                            ✓ Selesai Terlaksana
+                                        </span>
+                                    @else
+                                        <button type="button" class="btn-reject" style="background: #e65100;" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
+                                            Batalkan (Darurat)
+                                        </button>
+                                    @endif
                                 </div>
                             @else
                                 <span style="color: #999; font-size: 12px;">Diproses oleh: {{ $res->processor->name ?? 'Sistem' }}</span>

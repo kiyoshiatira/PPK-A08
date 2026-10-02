@@ -96,8 +96,18 @@
                             <span class="user-info">{{ $res->user->email }}</span>
                         </td>
                         <td>
-                            <span style="font-weight: 600; color: #1565c0; display: block;">{{ \Carbon\Carbon::parse($res->reservation_date)->translatedFormat('d M Y') }}</span>
+                            @php
+                                $isExpired = \Carbon\Carbon::parse("{$res->reservation_date} {$res->start_time}")->isPast();
+                            @endphp
+                            <span style="font-weight: 600; color: {{ $isExpired && $res->status === 'Pending' ? '#c62828' : '#1565c0' }}; display: block;">
+                                {{ \Carbon\Carbon::parse($res->reservation_date)->translatedFormat('d M Y') }}
+                            </span>
                             <span class="user-info">{{ substr($res->start_time, 0, 5) }} - {{ substr($res->end_time, 0, 5) }} WIB</span>
+                            @if($isExpired && $res->status === 'Pending')
+                                <span style="display: inline-block; margin-top: 3px; font-size: 10px; font-weight: 700; color: #c62828; background: #ffebee; border: 1px solid #ffcdd2; border-radius: 4px; padding: 1px 6px;">
+                                    ⚠️ Waktu Terlewat
+                                </span>
+                            @endif
                         </td>
                         <td>
                             <span style="color: #444; font-size: 13px;">{{ $res->purpose }}</span>

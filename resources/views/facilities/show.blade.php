@@ -91,21 +91,29 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold">Kalender ketersediaan</h2>
                 <div class="flex items-center gap-3 text-sm">
-                    <a
-                        href="{{ route('facilities.show', ['facility' => $facility->id, 'date' => $date->copy()->subDay()->toDateString()]) }}"
-                        class="px-2 py-1 rounded hover:bg-gray-100"
-                    >&lsaquo;</a>
+                    @if($canGoPrev)
+                        <a
+                            href="{{ route('facilities.show', ['facility' => $facility->id, 'date' => $date->copy()->subDay()->toDateString()]) }}"
+                            class="px-2 py-1 rounded hover:bg-gray-100"
+                        >&lsaquo;</a>
+                    @else
+                        <span class="px-2 py-1 rounded text-gray-300 cursor-not-allowed">&lsaquo;</span>
+                    @endif
                     <span class="font-medium">{{ $date->translatedFormat('d F Y') }}</span>
-                    <a
-                        href="{{ route('facilities.show', ['facility' => $facility->id, 'date' => $date->copy()->addDay()->toDateString()]) }}"
-                        class="px-2 py-1 rounded hover:bg-gray-100"
-                    >&rsaquo;</a>
+                    @if($canGoNext)
+                        <a
+                            href="{{ route('facilities.show', ['facility' => $facility->id, 'date' => $date->copy()->addDay()->toDateString()]) }}"
+                            class="px-2 py-1 rounded hover:bg-gray-100"
+                        >&rsaquo;</a>
+                    @else
+                        <span class="px-2 py-1 rounded text-gray-300 cursor-not-allowed">&rsaquo;</span>
+                    @endif
                 </div>
             </div>
 
             <div class="flex gap-3 mb-5">
                 <span class="bg-white border px-3 py-1 rounded-full text-xs font-medium">Tersedia</span>
-                <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium">Tidak tersedia</span>
+                <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium">Tidak tersedia (sudah disetujui)</span>
             </div>
 
             <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
@@ -113,7 +121,6 @@
                     @if ($slot['available'] && auth()->check())
                         <button
                             type="button"
-                            onclick="selectSlot('{{ $slot['time'] }}')"
                             class="border rounded-lg p-3 text-sm text-center bg-white hover:border-gray-900 hover:bg-gray-50 transition slot-btn"
                             data-time="{{ $slot['time'] }}"
                         >
@@ -212,6 +219,12 @@
     </main>
 
     <script>
+        document.querySelectorAll('.slot-btn[data-time]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                selectSlot(btn.dataset.time);
+            });
+        });
+
         function selectSlot(time) {
             document.getElementById('start_time').value = time;
 

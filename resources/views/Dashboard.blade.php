@@ -99,9 +99,19 @@
                 <p class="text-sm text-gray-500 mb-6">{{ $facility->location }} · {{ $facility->capacity }} orang</p>
 
                 <div class="flex justify-between items-center text-sm">
-                    <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">
-                        Tersedia {{ $facility->available_slots }} slot
-                    </span>
+                    @if($facility->status === 'Aktif')
+                        <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">
+                            Tersedia {{ $facility->available_slots }} slot
+                        </span>
+                    @elseif($facility->status === 'Dalam Perbaikan')
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold">
+                            ⚠️ Dalam Perbaikan
+                        </span>
+                    @else
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full font-semibold">
+                            ✕ Nonaktif
+                        </span>
+                    @endif
                     <span class="text-gray-500">07.00 — 20.00</span>
                 </div>
             </a>

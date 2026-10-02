@@ -23,6 +23,14 @@ class ReservationController extends Controller
         $start = Carbon::parse($validated['start_time']);
         $end   = Carbon::parse($validated['end_time']);
 
+        // SRS-12: Fasilitas hanya dapat dipesan jika statusnya 'Aktif'
+        $facility = \App\Models\Facility::findOrFail($validated['facility_id']);
+        if ($facility->status !== 'Aktif') {
+            return back()->withErrors([
+                'facility_id' => "Fasilitas '{$facility->name}' saat ini berstatus '{$facility->status}' dan tidak dapat dipesan."
+            ])->withInput();
+        }
+
         if ($start->lt($open) || $end->gt($close)) {
             return back()->withErrors(['start_time' => 'Waktu reservasi harus dalam jam operasional 07.00–20.00.'])->withInput();
         }

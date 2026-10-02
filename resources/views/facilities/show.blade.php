@@ -65,24 +65,37 @@
                     <span class="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium">{{ $facility->location }}</span>
                     <span class="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium">Kapasitas {{ $facility->capacity }}</span>
                     <span class="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium">{{ $facility->type }}</span>
+                    @if($facility->status === 'Aktif')
+                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">✓ Aktif</span>
+                    @elseif($facility->status === 'Dalam Perbaikan')
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">⚠️ Dalam Perbaikan</span>
+                    @else
+                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">✕ Nonaktif</span>
+                    @endif
                 </div>
 
-                @guest
-                    <a
-                        href="{{ route('login') }}"
-                        class="inline-block bg-gray-900 text-white rounded-lg px-5 py-3 text-sm font-semibold hover:bg-gray-800 transition"
-                    >
-                        Masuk untuk reservasi
-                    </a>
+                @if($facility->status !== 'Aktif')
+                    <div class="p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm mb-4">
+                        <strong>Perhatian:</strong> Fasilitas ini saat ini berstatus <strong>{{ $facility->status }}</strong> dan sementara waktu tidak dapat dipesan.
+                    </div>
                 @else
-                    <button
-                        type="button"
-                        onclick="document.getElementById('reservation-form').scrollIntoView({behavior: 'smooth'})"
-                        class="inline-block bg-gray-900 text-white rounded-lg px-5 py-3 text-sm font-semibold hover:bg-gray-800 transition"
-                    >
-                        Ajukan reservasi
-                    </button>
-                @endguest
+                    @guest
+                        <a
+                            href="{{ route('login') }}"
+                            class="inline-block bg-gray-900 text-white rounded-lg px-5 py-3 text-sm font-semibold hover:bg-gray-800 transition"
+                        >
+                            Masuk untuk reservasi
+                        </a>
+                    @else
+                        <button
+                            type="button"
+                            onclick="document.getElementById('reservation-form').scrollIntoView({behavior: 'smooth'})"
+                            class="inline-block bg-gray-900 text-white rounded-lg px-5 py-3 text-sm font-semibold hover:bg-gray-800 transition"
+                        >
+                            Ajukan reservasi
+                        </button>
+                    @endguest
+                @endif
             </div>
         </div>
 
@@ -199,12 +212,22 @@
                         @enderror
                     </div>
 
-                    <button
-                        type="submit"
-                        class="w-full bg-gray-900 text-white rounded-lg p-3 text-sm font-semibold hover:bg-gray-800 transition"
-                    >
-                        Ajukan reservasi
-                    </button>
+                    @if($facility->status === 'Aktif')
+                        <button
+                            type="submit"
+                            class="w-full bg-gray-900 text-white rounded-lg p-3 text-sm font-semibold hover:bg-gray-800 transition"
+                        >
+                            Ajukan reservasi
+                        </button>
+                    @else
+                        <button
+                            type="button"
+                            disabled
+                            class="w-full bg-gray-300 text-gray-500 rounded-lg p-3 text-sm font-semibold cursor-not-allowed"
+                        >
+                            Fasilitas Tidak Dapat Dipesan ({{ $facility->status }})
+                        </button>
+                    @endif
                 </form>
             </div>
         @endauth

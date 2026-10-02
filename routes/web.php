@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminFacilityController;
 use App\Http\Controllers\PetugasReservationController;
 use App\Http\Controllers\PetugasReportController;
+use App\Http\Controllers\PetugasFacilityController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserReservationController;
 use App\Http\Controllers\NotificationController;
@@ -53,6 +54,10 @@ Route::middleware('auth')->group(function () {
         // FR-11: Kelola Status Laporan Kerusakan
         Route::get('/reports', [PetugasReportController::class, 'index'])->name('reports.index');
         Route::patch('/reports/{report}/status', [PetugasReportController::class, 'updateStatus'])->name('reports.updateStatus');
+
+        // SRS-12: Ubah Status Fasilitas oleh Petugas
+        Route::get('/facilities', [PetugasFacilityController::class, 'index'])->name('facilities.index');
+        Route::patch('/facilities/{facility}/status', [PetugasFacilityController::class, 'updateStatus'])->name('facilities.updateStatus');
     });
 
     Route::middleware(['checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {

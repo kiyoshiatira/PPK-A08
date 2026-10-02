@@ -8,12 +8,53 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminUserController extends Controller
 {
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+        $role = $request->input('role');
+
+        $usersQuery = User::query();
+
+        if ($search) {
+            $usersQuery->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', '%' . $search . '%')
+                  ->orWhere('email', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        if ($role && $role !== 'all') {
+            $usersQuery->where('role', $role);
+        }
+
+        $users = $usersQuery->orderBy('created_at', 'desc')
+            ->paginate(10, ['*'], 'all_page')
+            ->appends($request->query());
+
+        $pendingQuery = User::where('is_verified', false); 
+
+        if ($search) {
+            $pendingQuery->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', '%' . $search . '%')
+                  ->orWhere('email', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        if ($role && $role !== 'all') {
+            $pendingQuery->where('role', $role);
+        }
+
+        $pendingUsers = $pendingQuery->orderBy('created_at', 'desc')
+            ->paginate(10, ['*'], 'pending_page')
+            ->appends($request->query());
+
+        return view('admin.users.index', compact('users', 'pendingUsers', 'search', 'role'));
+    }
+
     public function create(Request $request)
     {
         $search = $request->input('search');
         $roleFilter = $request->input('role');
 
-        // 1. Mengambil akun registrasi mandiri yang BELUM diverifikasi (Tabel Atas)
         $pendingUsers = User::where('is_verified', false)
                             ->when($search, function ($query, $search) {
                                 return $query->where(function ($q) use ($search) {
@@ -22,9 +63,9 @@ class AdminUserController extends Controller
                                 });
                             })
                             ->orderBy('created_at', 'desc')
-                            ->get();
+                            ->paginate(5, ['*'], 'pending_page') 
+                            ->withQueryString(); 
 
-        // 2. Mengambil akun yang SUDAH diverifikasi untuk tabel utama dengan filter role & pencarian (Tabel Bawah)
         $allUsers = User::where('is_verified', true)
                         ->when($roleFilter, function ($query, $roleFilter) {
                             return $query->where('role', $roleFilter);
@@ -36,7 +77,8 @@ class AdminUserController extends Controller
                             });
                         })
                         ->orderBy('created_at', 'desc')
-                        ->get();
+                        ->paginate(10, ['*'], 'users_page')
+                        ->withQueryString();
 
         return view('admin.users.create', compact('pendingUsers', 'allUsers', 'search', 'roleFilter'));
     }
@@ -55,7 +97,7 @@ class AdminUserController extends Controller
             'email'       => $validated['email'],
             'password'    => Hash::make($validated['password']),
             'role'        => $validated['role'],
-            'is_verified' => true, // Akun yang dibuat langsung oleh admin otomatis terverifikasi
+            'is_verified' => true, 
         ]);
 
         return redirect()->route('admin.users.create')->with('success', 'Akun baru berhasil ditambahkan.');

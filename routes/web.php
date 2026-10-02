@@ -13,6 +13,7 @@ use App\Http\Controllers\UserReservationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\AdminRekapController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -71,6 +72,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/facilities', [AdminFacilityController::class, 'store'])->name('facilities.store');
         Route::put('/facilities/{facility}', [AdminFacilityController::class, 'update'])->name('facilities.update');
         Route::delete('/facilities/{facility}', [AdminFacilityController::class, 'destroy'])->name('facilities.destroy');
+
+        Route::get('/rekap', [AdminRekapController::class, 'index'])->name('rekap.index');
+        Route::get('/rekap/export/csv', [AdminRekapController::class, 'exportCsv'])->name('rekap.export-csv');
+        Route::get('/rekap/export/excel', [AdminRekapController::class, 'exportExcel'])->name('rekap.export-excel');
+        Route::get('/rekap/export/pdf', [AdminRekapController::class, 'exportPdf'])->name('rekap.export-pdf');
 
     });
 

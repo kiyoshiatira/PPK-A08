@@ -15,7 +15,7 @@ class PetugasReportController extends Controller
      */
     public function index(Request $request)
     {
-        $statusFilter = $request->query('status', 'Baru'); // Default tampilkan Baru
+        $statusFilter = $request->query('status', '');
 
         $query = Report::with(['user', 'facility', 'processor'])
             ->orderBy('created_at', 'desc');
@@ -24,9 +24,18 @@ class PetugasReportController extends Controller
             $query->where('status', $statusFilter);
         }
 
-        $reports = $query->paginate(10)->withQueryString();
+        $reports = $query->paginate(20)->withQueryString();
 
         return view('petugas.reports.index', compact('reports', 'statusFilter'));
+    }
+
+    /**
+     * Detail panel partial for AJAX sidebar click
+     */
+    public function detail(Report $report)
+    {
+        $report->load(['user', 'facility', 'processor']);
+        return view('petugas.reports._detail', compact('report'));
     }
 
     /**

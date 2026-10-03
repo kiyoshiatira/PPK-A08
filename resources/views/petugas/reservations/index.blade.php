@@ -441,6 +441,10 @@
     <!-- Reservation Cards Grid -->
     <div class="reservation-grid">
         @forelse($reservations as $res)
+            @php
+                $isExpired = \Carbon\Carbon::parse("{$res->reservation_date} {$res->start_time}")->isPast();
+                $isEventEnded = \Carbon\Carbon::parse("{$res->reservation_date} {$res->end_time}")->isPast();
+            @endphp
             <div class="reservation-card {{ $res->has_conflict ? 'conflict-card' : '' }}">
                 <div>
                     <div class="card-top">
@@ -449,11 +453,17 @@
                             @if($res->status === 'Pending')
                                 @if($res->has_conflict)
                                     <span class="badge badge-conflict">Bentrok jadwal</span>
+                                @elseif($isExpired)
+                                    <span class="badge badge-conflict" title="Waktu penggunaan sudah terlewat">⚠️ Waktu Terlewat</span>
                                 @else
                                     <span class="badge badge-pending">Pending</span>
                                 @endif
                             @elseif($res->status === 'Approved')
-                                <span class="badge badge-approved">Approved</span>
+                                @if($isEventEnded)
+                                    <span class="badge badge-approved" style="background:#e8f5e9; color:#2e7d32; border-color:#c8e6c9;">✓ Selesai Terlaksana</span>
+                                @else
+                                    <span class="badge badge-approved">Approved</span>
+                                @endif
                             @elseif($res->status === 'Rejected')
                                 <span class="badge badge-rejected">Ditolak</span>
                             @else
@@ -469,7 +479,7 @@
                         </div>
                         <div class="meta-row">
                             <span class="meta-label">Jadwal:</span>
-                            <span class="meta-val" style="color: #2563eb;">
+                            <span class="meta-val" style="color: {{ $isExpired && $res->status === 'Pending' ? '#c62828' : '#2563eb' }}; font-weight: 600;">
                                 {{ \Carbon\Carbon::parse($res->reservation_date)->translatedFormat('d M Y') }} &bull; {{ substr($res->start_time, 0, 5) }} &ndash; {{ substr($res->end_time, 0, 5) }} WIB
                             </span>
                         </div>
@@ -492,7 +502,7 @@
                         <form action="{{ route('petugas.reservations.approve', $res->id) }}" method="POST" style="margin: 0;">
                             @csrf
                             @method('PATCH')
-                            <button type="submit" class="btn-approve" {{ $res->has_conflict ? 'disabled' : '' }} onclick="return confirm('Setujui reservasi {{ addslashes($res->facility->name) }} untuk {{ addslashes($res->user->name) }}?')">
+                            <button type="submit" class="btn-approve" {{ ($res->has_conflict || $isExpired) ? 'disabled' : '' }} onclick="return confirm('Setujui reservasi {{ addslashes($res->facility->name) }} untuk {{ addslashes($res->user->name) }}?')">
                                 Approve
                             </button>
                         </form>
@@ -502,9 +512,15 @@
                             Reject
                         </button>
                     @elseif($res->status === 'Approved')
-                        <button type="button" class="btn-emergency-cancel" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
-                            Batalkan Reservasi (Darurat)
-                        </button>
+                        @if($isEventEnded)
+                            <div style="grid-column: span 2; text-align: center; color: #166534; font-size: 12px; padding: 6px 0; font-weight: 600;">
+                                Kegiatan telah selesai terlaksana
+                            </div>
+                        @else
+                            <button type="button" class="btn-emergency-cancel" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
+                                Batalkan Reservasi (Darurat)
+                            </button>
+                        @endif
                     @else
                         <div style="grid-column: span 2; text-align: center; color: #94a3b8; font-size: 12px; padding: 4px 0;">
                             Diproses oleh: {{ $res->processor->name ?? 'Sistem' }}

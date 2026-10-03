@@ -10,12 +10,21 @@ class ReservationController extends Controller
 {
     public function store(Request $request)
     {
+        // Minimal H+3: reservasi wajib diajukan paling lambat 3 hari sebelum tanggal pemakaian.
+        $minDate = Carbon::today()->addDays(3);
+
         $validated = $request->validate([
             'facility_id'      => ['required', 'exists:facilities,id'],
-            'reservation_date' => ['required', 'date'],
+            'reservation_date' => [
+                'required',
+                'date',
+                'after_or_equal:' . $minDate->toDateString(),
+            ],
             'start_time'       => ['required', 'date_format:H:i'],
             'end_time'         => ['required', 'date_format:H:i', 'after:start_time'],
             'purpose'          => ['required', 'string', 'max:500'],
+        ], [
+            'reservation_date.after_or_equal' => 'Reservasi minimal diajukan 3 hari sebelum tanggal pemakaian.',
         ]);
 
         $open  = Carbon::parse('07:00');
@@ -39,15 +48,18 @@ class ReservationController extends Controller
             return back()->withErrors(['start_time' => 'Waktu harus kelipatan slot 30 menit.'])->withInput();
         }
 
+        // Cuma cek bentrok sama reservasi yang SUDAH Approved.
+        // Reservasi Pending lain boleh numpuk di slot yang sama - nanti petugas
+        // yang milih salah satu buat di-approve (lihat catatan di approve()).
         $conflict = Reservation::where('facility_id', $validated['facility_id'])
             ->where('reservation_date', $validated['reservation_date'])
-            ->whereIn('status', ['Pending', 'Approved'])
+            ->where('status', 'Approved')
             ->where('start_time', '<', $validated['end_time'])
             ->where('end_time', '>', $validated['start_time'])
             ->exists();
 
         if ($conflict) {
-            return back()->withErrors(['start_time' => 'Slot ini sudah dipesan atau masih diproses. Pilih slot lain.'])->withInput();
+            return back()->withErrors(['start_time' => 'Slot ini sudah disetujui untuk pemesan lain. Pilih slot lain.'])->withInput();
         }
 
         Reservation::create([

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Report;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -46,50 +47,108 @@ class PetugasReportController extends Controller
         ]);
 
         $newStatus = $request->input('status');
+        $notes = trim($request->input('resolution_notes', ''));
 
-        // 2. Cek perpindahan status yang diizinkan
-        $allowedTransitions = [
-            'Baru'     => ['Diproses'],
-            'Diproses' => ['Selesai', 'Ditolak'],
-        ];
-
-        // Jika status laporan sudah final (Selesai/Ditolak) tidak bisa diubah lagi
-        if (!isset($allowedTransitions[$report->status])) {
-            return back()->withErrors([
-                'msg' => 'Status laporan ini sudah final dan tidak dapat diubah lagi.'
-            ]);
-        }
-
-        // Jika status baru tidak sesuai alur yang diizinkan
-        if (!in_array($newStatus, $allowedTransitions[$report->status])) {
-            return back()->withErrors([
-                'msg' => "Status tidak dapat diubah dari '{$report->status}' ke '{$newStatus}'."
-            ]);
-        }
-
-        // 3. Jika status baru adalah Selesai atau Ditolak, catatan resolusi WAJIB diisi
+        // Edge Case 1: Jika status baru adalah Selesai atau Ditolak, catatan resolusi WAJIB diisi dan tidak boleh hanya spasi
         if (in_array($newStatus, ['Selesai', 'Ditolak'])) {
-            $request->validate([
-                'resolution_notes' => 'required|string|max:1000',
-            ], [
-                'resolution_notes.required' => 'Catatan resolusi wajib diisi saat laporan diselesaikan atau ditolak.',
-            ]);
+            if (empty($notes)) {
+                return back()->withErrors([
+                    'resolution_notes' => 'Catatan resolusi wajib diisi dan tidak boleh hanya berupa spasi saat laporan diselesaikan atau ditolak.'
+                ]);
+            }
+
+            if (mb_strlen($notes) < 5) {
+                return back()->withErrors([
+                    'resolution_notes' => 'Catatan resolusi minimal 5 karakter agar memberikan kejelasan bagi pelapor.'
+                ]);
+            }
         }
 
-        // 4. Update status laporan
-        $report->update([
-            'status'           => $newStatus,
-            'resolution_notes' => $request->input('resolution_notes'),
-            'processed_by'     => Auth::id(),
-        ]);
+        // 2. Transaksi Database & Pesimistic Lock untuk Concurrency Safety
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($report, $newStatus, $notes) {
+            $rep = Report::lockForUpdate()->find($report->id);
 
-        $pesan = match ($newStatus) {
-            'Diproses' => 'Laporan ditandai sedang diproses.',
-            'Selesai'  => 'Laporan berhasil diselesaikan.',
-            'Ditolak'  => 'Laporan telah ditolak.',
-            default    => 'Status laporan berhasil diperbarui.',
-        };
+            if (!$rep) {
+                return back()->withErrors(['msg' => 'Data laporan tidak ditemukan.']);
+            }
 
-        return back()->with('success', $pesan);
+            // Edge Case 2: Idempotency (jika status sudah sama)
+            if ($rep->status === $newStatus) {
+                return back()->with('info', "Laporan ini sudah berstatus '{$newStatus}' sebelumnya.");
+            }
+
+            // 3. Cek perpindahan status yang diizinkan
+            $allowedTransitions = [
+                'Baru'     => ['Diproses'],
+                'Diproses' => ['Selesai', 'Ditolak'],
+            ];
+
+            // Jika status laporan sudah final (Selesai/Ditolak) tidak bisa diubah lagi
+            if (!isset($allowedTransitions[$rep->status])) {
+                return back()->withErrors([
+                    'msg' => "Status laporan ini sudah final ('{$rep->status}') dan tidak dapat diubah lagi."
+                ]);
+            }
+
+            // Jika status baru tidak sesuai alur yang diizinkan
+            if (!in_array($newStatus, $allowedTransitions[$rep->status])) {
+                return back()->withErrors([
+                    'msg' => "Status tidak dapat diubah dari '{$rep->status}' ke '{$newStatus}'."
+                ]);
+            }
+
+            // 4. Update status laporan
+            $rep->update([
+                'status'           => $newStatus,
+                'resolution_notes' => in_array($newStatus, ['Selesai', 'Ditolak']) ? $notes : null,
+                'processed_by'     => Auth::id(),
+            ]);
+
+            // SRS-12: Konsekuensi otomatis perubahan status fasilitas (dengan null-safety)
+            if ($rep->facility) {
+                if ($newStatus === 'Diproses') {
+                    $rep->facility->update(['status' => 'Dalam Perbaikan']);
+                } elseif (in_array($newStatus, ['Selesai', 'Ditolak'])) {
+                    $masihAdaYangDiproses = \App\Models\Report::where('facility_id', $rep->facility_id)
+                        ->where('status', 'Diproses')
+                        ->where('id', '!=', $rep->id) // Kecualikan laporan yang baru saja diselesaikan
+                        ->exists();
+
+                    if (!$masihAdaYangDiproses) {
+                        // Tidak ada laporan lain yang masih Diproses → fasilitas boleh kembali Aktif
+                        $rep->facility->update(['status' => 'Aktif']);
+                    }
+                    // Jika masih ada laporan lain yang Diproses → fasilitas tetap "Dalam Perbaikan"
+                }
+            }
+
+            // FR-12: Buat notifikasi untuk Pengguna pelapor (dengan null-safety)
+            if ($rep->user) {
+                $facilityName = $rep->facility ? $rep->facility->name : 'Fasilitas Terkait';
+                $pesanNotif = match ($newStatus) {
+                    'Diproses' => "Laporan kerusakan fasilitas {$facilityName} sedang ditangani oleh petugas.",
+                    'Selesai'  => "Laporan kerusakan fasilitas {$facilityName} telah selesai ditangani. Catatan: {$notes}",
+                    'Ditolak'  => "Laporan kerusakan fasilitas {$facilityName} ditolak. Alasan: {$notes}",
+                    default    => "Status laporan kerusakan Anda diperbarui menjadi {$newStatus}.",
+                };
+
+                Notification::create([
+                    'user_id' => $rep->user_id,
+                    'title'   => "Status Laporan: {$newStatus}",
+                    'message' => $pesanNotif,
+                    'type'    => 'laporan',
+                    'link'    => route('reports.index'),
+                ]);
+            }
+
+            $pesan = match ($newStatus) {
+                'Diproses' => 'Laporan ditandai sedang diproses.',
+                'Selesai'  => 'Laporan berhasil diselesaikan.',
+                'Ditolak'  => 'Laporan telah ditolak.',
+                default    => 'Status laporan berhasil diperbarui.',
+            };
+
+            return back()->with('success', $pesan);
+        });
     }
 }

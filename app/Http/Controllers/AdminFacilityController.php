@@ -10,16 +10,28 @@ class AdminFacilityController extends Controller
 {
     public function index(Request $request)
     {
-        $facilities = Facility::orderBy('created_at', 'desc')->get();
-        
-        $editFacility = null;
-        if ($request->has('edit')) {
-            $editFacility = Facility::findOrFail($request->query('edit'));
+        $search = $request->input('search');
+        $status = $request->input('status');
+
+        $query = Facility::query();
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', '%' . $search . '%')
+                  ->orWhere('location', 'LIKE', '%' . $search . '%');
+            });
         }
 
-        return view('admin.facilities.index', compact('facilities', 'editFacility'));
-    }
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
 
+        $facilities = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->query());
+
+        $editFacility = null; 
+
+        return view('admin.facilities.index', compact('facilities', 'search', 'status', 'editFacility'));
+    }
     public function store(Request $request)
     {
         $validated = $request->validate([

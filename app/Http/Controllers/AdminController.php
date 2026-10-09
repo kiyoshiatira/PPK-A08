@@ -7,80 +7,68 @@ use App\Models\Facility;
 use App\Models\Reservation;
 use App\Models\Report;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        // 1. Data User
         $totalUsers = User::count();
-        $pendingUsersCount = User::where('is_verified', false)->count();
-        $newUsersThisMonth = User::whereMonth('created_at', Carbon::now()->month)
-                                 ->whereYear('created_at', Carbon::now()->year)
-                                 ->count();
+        $usersBulanIni = User::whereMonth('created_at', Carbon::now()->month)->count();
+        
+        $usersPending = 0; 
 
-        // 2. Data Fasilitas
-        $totalFacilities = Facility::count();
-        $activeFacilities = Facility::where('status', 'Aktif')->count(); 
-        $facilitiesInRepair = Facility::where('status', 'Dalam Perbaikan')->count(); // Data dinamis untuk "Perlu perhatian"
+        $totalFasilitas = Facility::count();
+        $fasilitasAktif = Facility::where('status', 'LIKE', '%aktif%')->count();
+        
+        $fasilitasPerbaikan = Facility::where('status', 'LIKE', '%perbaikan%')
+            ->orWhere('status', 'LIKE', '%maintenance%')
+            ->orWhere('status', 'LIKE', '%repair%')
+            ->count();
 
-        // 3. Data Reservasi 
-        $totalReservations = Reservation::count();
-        $weeklyReservations = Reservation::whereBetween('created_at', [
-            Carbon::now()->startOfWeek(), 
-            Carbon::now()->endOfWeek()
-        ])->count();
+        $totalReservasi = Reservation::count();
+        $reservasiMingguIni = Reservation::where('created_at', '>=', Carbon::now()->startOfWeek())->count();
 
-        // 4. Data Laporan
-        $totalReports = Report::count();
-        $unhandledReports = Report::where('status', 'Baru')->count(); // Sesuaikan jika status default Anda berbeda
+        $totalLaporan = Report::count();
+        $laporanPending = Report::where('status', 'LIKE', '%pending%')
+            ->orWhere('status', 'LIKE', '%menunggu%')
+            ->count();
 
-        // 5. Data Aktivitas Terbaru (Menggabungkan data terbaru dari berbagai tabel)
-        $recentActivities = collect();
+        $recentUsers = User::latest()->take(2)->get()->map(function($user) {
+            return [
+                'aktivitas' => 'Akun pengguna baru terdaftar (' . $user->name . ')',
+                'waktu' => $user->created_at->diffForHumans(),
+                'timestamp' => $user->created_at
+            ];
+        });
 
-        // Cek user terbaru yang diverifikasi
-        $latestUser = User::where('is_verified', true)->latest('updated_at')->first();
-        if ($latestUser) {
-            $recentActivities->push([
-                'description' => "Akun pengguna ({$latestUser->name}) diverifikasi",
-                'time' => $latestUser->updated_at
-            ]);
-        }
+        $recentReservations = Reservation::latest()->take(2)->get()->map(function($res) {
+            return [
+                'aktivitas' => 'Reservasi baru dibuat',
+                'waktu' => $res->created_at->diffForHumans(),
+                'timestamp' => $res->created_at
+            ];
+        });
 
-        // Cek fasilitas yang paling baru ditambahkan
-        $latestFacility = Facility::latest('created_at')->first();
-        if ($latestFacility) {
-            $recentActivities->push([
-                'description' => "Fasilitas baru ({$latestFacility->name}) ditambahkan",
-                'time' => $latestFacility->created_at
-            ]);
-        }
+        $recentReports = Report::latest()->take(2)->get()->map(function($rep) {
+            return [
+                'aktivitas' => 'Laporan kerusakan baru diterima',
+                'waktu' => $rep->created_at->diffForHumans(),
+                'timestamp' => $rep->created_at
+            ];
+        });
 
-        // Cek reservasi terbaru yang disetujui (jika ada kolom status)
-        // Jika tabel reservasi Anda belum ada kolom status, Anda bisa gunakan ->latest('created_at')
-        $latestReservation = Reservation::latest('updated_at')->first(); 
-        if ($latestReservation) {
-            $recentActivities->push([
-                'description' => 'Reservasi diperbarui',
-                'time' => $latestReservation->updated_at
-            ]);
-        }
-
-        // Urutkan aktivitas dari yang paling baru ke lama, dan ambil 3 teratas
-        $recentActivities = $recentActivities->sortByDesc('time')->take(3);
+        $recentActivities = collect()
+            ->concat($recentUsers)
+            ->concat($recentReservations)
+            ->concat($recentReports)
+            ->sortByDesc('timestamp')
+            ->take(3);
 
         return view('admin.dashboard', compact(
-            'totalUsers', 
-            'pendingUsersCount', 
-            'newUsersThisMonth',
-            'totalFacilities', 
-            'activeFacilities', 
-            'facilitiesInRepair',
-            'totalReservations', 
-            'weeklyReservations', 
-            'totalReports', 
-            'unhandledReports',
+            'totalUsers', 'usersBulanIni',
+            'totalFasilitas', 'fasilitasAktif', 'fasilitasPerbaikan',
+            'totalReservasi', 'reservasiMingguIni',
+            'totalLaporan', 'laporanPending',
             'recentActivities'
         ));
     }

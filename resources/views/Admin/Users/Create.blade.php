@@ -1,210 +1,171 @@
 @extends('layouts.admin')
 
 @section('content')
-<style>
-    .page-title { font-size: 24px; font-weight: 700; margin-bottom: 5px; color: #111; }
-    .page-subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
-
-    .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 30px; overflow: hidden; }
-    .card-header { padding: 20px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
-    .card-title { font-size: 16px; font-weight: 700; margin: 0; }
-
-    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-    .data-table th { background: #f5f5f5; padding: 12px 20px; font-weight: 600; color: #333; border-bottom: 1px solid #e0e0e0; }
-    .data-table td { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
-    .data-table tr:last-child td { border-bottom: none; }
-    
-    .user-name { font-weight: 600; color: #111; margin-bottom: 4px; display: block; font-size: 14px; }
-    .user-email { color: #666; }
-    .text-gray { color: #666; }
-    
-    .search-filter-form { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; flex-wrap: wrap; }
-    .search-input { flex: 1; min-width: 250px; padding: 10px 12px; border: 1px solid #dcdcdc; border-radius: 4px; font-size: 13px; font-family: inherit; background: #fff; }
-    .filter-select { padding: 10px 12px; border: 1px solid #dcdcdc; border-radius: 4px; font-size: 13px; font-family: inherit; background: #fff; }
-    .btn-search { background: #222; color: #fff; border: none; padding: 0 20px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
-    .btn-search:hover { background: #000; }
-    .btn-reset { padding: 10px 15px; background: #e0e0e0; color: #333; border-radius: 4px; text-decoration: none; font-size: 13px; display: flex; align-items: center; }
-    
-    .role-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-    .role-admin { background: #ffebee; color: #c62828; }
-    .role-petugas { background: #e3f2fd; color: #1565c0; }
-    .role-pengguna { background: #e8f5e9; color: #2e7d32; }
-
-    .form-container { width: 100%; max-width: 450px; padding: 20px; }
-    .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #111; }
-    .form-control { width: 100%; padding: 10px 12px; border: 1px solid #dcdcdc; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 13px; }
-    .btn-dark { background: #222; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; margin-top: 10px; }
-    .btn-delete { background: none; border: none; color: #c62828; cursor: pointer; font-size: 13px; padding: 0; }
-    .btn-delete:hover { text-decoration: underline; }
-</style>
-
-<div>
-    <h1 class="page-title">Kelola Akun Pengguna</h1>
-    <p class="page-subtitle">Verifikasi pendaftaran mandiri, kelola seluruh data akun (Pengguna, Petugas, Admin), serta tambah akun baru.</p>
-
-    <!-- Notifikasi -->
-    @if(session('success'))
-        <div style="background: #e6f6e6; color: #2e7d32; padding: 10px 15px; border-radius: 4px; margin-bottom: 20px; font-size: 13px; border: 1px solid #c8e6c9;">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if($errors->any())
-        <div style="background: #fdecea; color: #c62828; padding: 10px 15px; border-radius: 4px; margin-bottom: 20px; font-size: 13px; border: 1px solid #f8bbd0;">
-            @foreach($errors->all() as $error)
-                <div>- {{ $error }}</div>
-            @endforeach
-        </div>
-    @endif
-
-    <!-- SEKSI 1: Tabel Menunggu Verifikasi (Selalu Ditampilkan) -->
-    <div class="card" style="margin-bottom: 30px;">
-        <div class="card-header">
-            <h3 class="card-title">
-                Menunggu verifikasi 
-                <span style="background: #eee; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 5px;">{{ $pendingUsers->count() }} permintaan</span>
-            </h3>
-        </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width: 30%;">Nama</th>
-                    <th style="width: 35%;">Email</th>
-                    <th style="width: 20%;">Tanggal daftar</th>
-                    <th style="width: 15%;">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($pendingUsers as $user)
-                    <tr>
-                        <td><span class="user-name">{{ $user->name }}</span></td>
-                        <td><span class="user-email">{{ $user->email }}</span></td>
-                        <td><span class="text-gray">{{ $user->created_at->format('d M Y') }}</span></td>
-                        <td>
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <!-- Tombol Verifikasi -->
-                                <form action="{{ route('admin.users.verify', $user->id) }}" method="POST" style="margin: 0;">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" style="background: none; border: none; color: #2e7d32; cursor: pointer; font-size: 13px; padding: 0;" onclick="return confirm('Verifikasi akun {{ $user->name }}?')">Verifikasi</button>
-                                </form>
-                                <span style="color: #666;">·</span>
-                                <!-- Tombol Tolak -->
-                                <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" style="margin: 0;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" style="background: none; border: none; color: #c62828; cursor: pointer; font-size: 13px; padding: 0;" onclick="return confirm('Tolak pendaftaran {{ $user->name }}?')">Tolak</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" style="text-align: center; padding: 30px; color: #888;">Tidak ada pendaftaran akun yang menunggu verifikasi.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+<div class="page-header-flex">
+    <div>
+        <h1 class="page-title" style="font-size: 24px; font-weight: 700; margin-bottom: 6px;">Kelola akun</h1>
+        <p class="page-subtitle" style="color: #6b7280; font-size: 14px;">Tambah akun langsung serta verifikasi atau tolak registrasi mandiri.</p>
     </div>
+    <a href="#form-tambah" class="btn-primary">Tambah akun</a>
+</div>
 
-    <!-- SEKSI 2: Form Pencarian & Filter Role -->
-    <form action="{{ route('admin.users.create') }}" method="GET" class="search-filter-form">
-        <input type="text" name="search" class="search-input" placeholder="Cari berdasarkan nama atau email..." value="{{ request('search') }}">
-        
-        <select name="role" class="filter-select" onchange="this.form.submit()">
-            <option value="">Semua Peran (Role)</option>
-            <option value="pengguna" {{ request('role') == 'pengguna' ? 'selected' : '' }}>Pengguna (Mahasiswa/Dosen/Staf)</option>
-            <option value="petugas" {{ request('role') == 'petugas' ? 'selected' : '' }}>Petugas</option>
-            <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-        </select>
-
-        <button type="submit" class="btn-search">Filter</button>
-        
-        @if(request('search') || request('role'))
-            <a href="{{ route('admin.users.create') }}" class="btn-reset">Reset</a>
-        @endif
-    </form>
-
-    <!-- SEKSI 3: Daftar Semua Akun Terverifikasi -->
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Daftar Akun Sistem</h3>
-        </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width: 30%;">Nama</th>
-                    <th style="width: 30%;">Email</th>
-                    <th style="width: 20%;">Peran (Role)</th>
-                    <th style="width: 10%;">Status</th>
-                    <th style="width: 10%;">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($allUsers as $user)
-                    <tr>
-                        <td><span class="user-name">{{ $user->name }}</span></td>
-                        <td><span class="user-email">{{ $user->email }}</span></td>
-                        <td>
-                            @if($user->role == 'admin')
-                                <span class="role-badge role-admin">Admin</span>
-                            @elseif($user->role == 'petugas')
-                                <span class="role-badge role-petugas">Petugas</span>
-                            @else
-                                <span class="role-badge role-pengguna">Pengguna</span>
-                            @endif
-                        </td>
-                        <td><span style="color: #2e7d32; font-weight: 500;">Aktif</span></td>
-                        <td>
-                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="margin: 0;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-delete" onclick="return confirm('Yakin ingin menghapus akun {{ $user->name }}?')">Hapus</button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 30px; color: #888;">Tidak ada data akun yang ditemukan.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+<!-- 1. Tabel Menunggu Verifikasi (Paling Atas) -->
+<div class="card-ui">
+    <div class="card-title">
+        Menunggu verifikasi 
+        <span class="badge badge-yellow" style="font-size: 11px;">{{ $pendingUsers->count() }} permintaan</span>
     </div>
+    <table class="table-ui">
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Email</th>
+                <th>Tanggal Daftar</th>
+                <th style="text-align: right;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($pendingUsers as $user)
+                <tr>
+                    <td style="font-weight: 600; color: #111;">{{ $user->name }}</td>
+                    <td>{{ $user->email }}</td>
+                    <td>{{ \Carbon\Carbon::parse($user->created_at)->translatedFormat('d M Y') }}</td>
+                    <td style="text-align: right;">
+                        <!-- Form Verifikasi -->
+                        <form action="{{ route('admin.users.verify', $user->id) }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            <button type="submit" class="action-link text-blue" style="background: transparent; border: none; cursor: pointer; padding: 0;">Verifikasi</button>
+                        </form>
+                        
+                        <!-- Form Tolak -->
+                        <form action="{{ route('admin.users.reject', $user->id) }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="action-link text-red" style="background: transparent; border: none; cursor: pointer; padding: 0; margin-right: 0;">Tolak</button>
+                        </form>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #6b7280;">Tidak ada permintaan verifikasi saat ini.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+    <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
+        {{ $pendingUsers->appends(request()->query())->links('pagination::bootstrap-4') }}
+    </div>
+</div>
 
-    <!-- SEKSI 4: Form Tambah Akun Langsung -->
-    <div class="card form-container">
-        <h3 class="card-title" style="margin-bottom: 20px;">Tambah akun baru</h3>
-        
-        <form action="{{ route('admin.users.store') }}" method="POST">
-            @csrf
-            <div class="form-group">
-                <label class="form-label" for="name">Nama lengkap</label>
-                <input type="text" id="name" name="name" class="form-control" placeholder="Nama lengkap" required>
-            </div>
+<!-- 2. Tabel Semua Akun (Menggantikan Semua Pengguna) -->
+<div class="card-ui">
+    <div class="card-title">Semua akun</div>
+    <!-- Filter & Search Bar Section -->
+    <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+        <form action="{{ route('admin.users.create') }}" method="GET" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
             
-            <div class="form-group">
-                <label class="form-label" for="email">Email</label>
-                <input type="email" id="email" name="email" class="form-control" placeholder="email@kampus.ac.id" required>
+            <!-- Search Bar Input -->
+            <div style="flex: 1; min-width: 240px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px;">Cari Pengguna</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari berdasarkan nama atau email..." style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none;">
             </div>
 
+            <!-- Filter Berdasarkan Role -->
+            <div style="width: 200px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px;">Filter Peran (Role)</label>
+                <select name="role" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff;">
+                    <option value="all">Semua Peran</option>
+                    <option value="Admin" {{ request('role') == 'Admin' ? 'selected' : '' }}>Admin</option>
+                    <option value="Petugas" {{ request('role') == 'Petugas' ? 'selected' : '' }}>Petugas</option>
+                    <option value="Pengguna" {{ request('role') == 'Pengguna' ? 'selected' : '' }}>Pengguna</option>
+                </select>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div style="display: flex; gap: 8px; align-items: flex-end; margin-top: 22px;">
+                <button type="submit" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;">Cari</button>
+                <a href="{{ route('admin.users.create') }}" style="padding: 10px 16px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block;">Reset</a>
+            </div>
+
+        </form>
+    </div>
+    <table class="table-ui">
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Email</th>
+                <th>Peran</th>
+                <th>Status</th>
+                <th style="text-align: right;">Aksi</th> 
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($allUsers as $user)
+                <tr>
+                    <td style="font-weight: 600; color: #111;">{{ $user->name }}</td>
+                    <td>{{ $user->email }}</td>
+                    <td><span style="font-weight: 500; color: #4b5563;">{{ ucfirst($user->role) }}</span></td>
+                    <td>
+                        @if($user->is_verified)
+                            <span class="badge badge-green">Terverifikasi</span>
+                        @else
+                            <span class="badge badge-red">Ditolak</span>
+                        @endif
+                    </td>
+                    <td style="text-align: right;">
+                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $user->name }}?');" style="display: inline-block;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="action-link text-red" style="background: transparent; border: none; cursor: pointer; padding: 0; margin-right: 0;">Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #6b7280;">Belum ada akun terdaftar.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+    <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
+        {{ $users->appends(request()->query())->links('pagination::bootstrap-4') }}
+    </div>
+</div>
+
+<!-- 3. Form Tambah Akun Langsung -->
+<div id="form-tambah" class="card-ui">
+    <div class="card-title" style="margin-bottom: 5px;">Tambah akun langsung</div>
+    <p style="color: #6b7280; font-size: 13px; margin-bottom: 20px;">Daftarkan akun sivitas akademika secara manual ke database sistem.</p>
+    
+    <form action="{{ route('admin.users.store') }}" method="POST">
+        @csrf
+        <div class="form-row">
             <div class="form-group">
-                <label class="form-label" for="role">Peran (Role)</label>
-                <select id="role" name="role" class="form-control" required>
-                    <option value="" disabled selected>Pilih peran</option>
-                    <option value="pengguna">Pengguna (Mahasiswa/Dosen/Staf)</option>
+                <label class="form-label">Nama Lengkap</label>
+                <input type="text" name="name" class="form-control" placeholder="Masukkan nama lengkap..." required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Kampus</label>
+                <input type="email" name="email" class="form-control" placeholder="sivitas@student.ac.id" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Peran</label>
+                <select name="role" class="form-control" required>
+                    <option value="pengguna">Pengguna</option>
                     <option value="petugas">Petugas</option>
                     <option value="admin">Admin</option>
                 </select>
             </div>
+        </div>
+        
+        <div class="form-group" style="margin-top: 10px;">
+            <label class="form-label">Password Sementara</label>
+            <input type="password" name="password" class="form-control" placeholder="Masukkan password untuk pengguna baru..." required>
+        </div>
 
-            <div class="form-group">
-                <label class="form-label" for="password">Password sementara</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="********" required minlength="6">
-            </div>
-
-            <button type="submit" class="btn-dark">Buat akun</button>
-        </form>
-    </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button type="submit" class="btn-primary">Tambah akun</button>
+        </div>
+    </form>
 </div>
 @endsection

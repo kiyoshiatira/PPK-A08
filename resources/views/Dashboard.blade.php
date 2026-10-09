@@ -1,121 +1,108 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruang Kampus</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+@extends('layouts.app')
 
-    <!-- Navbar -->
-    <nav class="flex items-center justify-between px-8 py-4 bg-white border-b">
-        <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 bg-gray-900 rounded"></div>
-            <span class="font-bold text-lg tracking-wide">RUANG KAMPUS</span>
+@section('title', 'Beranda - Ruang Kampus')
+
+@section('content')
+<div class="max-w-6xl mx-auto px-8 py-10">
+
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Halo, {{ \Illuminate\Support\Str::of(auth()->user()->name)->before(' ') }}</h1>
+            <p class="text-neutral-600 text-sm mt-1">Ringkasan aktivitas reservasi dan laporan Anda.</p>
         </div>
-        <div class="space-x-6 text-sm font-medium flex items-center">
-            <a href="{{ route('dashboard') }}" class="text-black">Beranda</a>
-            <a href="#" class="text-gray-500 hover:text-black">Fasilitas</a>
-            @auth
-                <span class="text-gray-500">{{ auth()->user()->name }}</span>
-                <form action="{{ route('logout') }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="text-gray-500 hover:text-black">Keluar</button>
-                </form>
-            @else
-                <a href="{{ route('login') }}" class="text-gray-500 hover:text-black">Masuk</a>
-            @endauth
+        <a
+            href="{{ route('facilities.index') }}"
+            class="bg-blue-400 hover:bg-blue-500 text-neutral-900 border border-blue-500 rounded-lg px-5 py-2.5 text-sm font-semibold transition"
+        >
+            Ajukan reservasi
+        </a>
+    </div>
+
+    <!-- Kartu statistik -->
+    <div class="grid grid-cols-3 gap-6 mb-8">
+        <div class="bg-neutral-200 border rounded-xl p-6">
+            <p class="text-sm mb-3">Reservasi aktif</p>
+            <p class="text-4xl font-bold text-blue-700 mb-3">{{ $activeReservationsCount }}</p>
+            <p class="text-sm text-neutral-700">{{ $pendingReservationsCount }} menunggu persetujuan</p>
         </div>
-    </nav>
+        <div class="bg-neutral-200 border rounded-xl p-6">
+            <p class="text-sm mb-3">Reservasi bulan ini</p>
+            <p class="text-4xl font-bold text-blue-700 mb-3">{{ $thisMonthReservationsCount }}</p>
+            <p class="text-sm text-neutral-700">{{ $thisMonthApprovedCount }} telah disetujui</p>
+        </div>
+        <div class="bg-neutral-200 border rounded-xl p-6">
+            <p class="text-sm mb-3">Laporan aktif</p>
+            <p class="text-4xl font-bold text-blue-700 mb-3">{{ $activeReportsCount }}</p>
+            <p class="text-sm text-neutral-700">Sedang ditinjau pengelola</p>
+        </div>
+    </div>
 
-    <!-- Header & Form Filter -->
-    <main class="max-w-7xl mx-auto px-8 py-10">
-        <h1 class="text-3xl font-bold mb-2">Temukan fasilitas kampus</h1>
-        <p class="text-gray-500 mb-8">Cek ketersediaan ruang dan fasilitas per 30 menit, pukul 07.00–20.00.</p>
+    <!-- Dua panel -->
+    <div class="grid grid-cols-2 gap-6 items-start">
 
-        <form action="{{ route('dashboard') }}" method="GET" class="bg-white p-6 rounded-xl border shadow-sm mb-10">
-            <!-- Search -->
-            <div class="mb-4">
-                <label class="block text-sm font-semibold mb-2">Cari fasilitas</label>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama fasilitas..." class="w-full border rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900">
+        <!-- Reservasi aktif -->
+        <div class="bg-white border rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Reservasi aktif</h2>
+                <a href="{{ route('reservations.index') }}" class="text-sm text-neutral-500 hover:text-black font-medium">Lihat semua</a>
             </div>
 
-            <!-- Dropdowns -->
-            <div class="grid grid-cols-5 gap-4">
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Tipe</label>
-                    <select name="type" class="w-full border rounded-lg p-3 text-sm bg-white">
-                        <option value="Semua tipe">Semua tipe</option>
-                        @foreach($types as $type)
-                            <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Lokasi</label>
-                    <select name="location" class="w-full border rounded-lg p-3 text-sm bg-white">
-                        <option value="Semua lokasi">Semua lokasi</option>
-                        @foreach($locations as $location)
-                            <option value="{{ $location }}" {{ request('location') == $location ? 'selected' : '' }}>{{ $location }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Kapasitas minimum</label>
-                    <input type="number" name="min_capacity" value="{{ request('min_capacity', 0) }}" class="w-full border rounded-lg p-3 text-sm bg-white">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Kapasitas maksimum</label>
-                    <input type="number" name="max_capacity" value="{{ request('max_capacity', 500) }}" class="w-full border rounded-lg p-3 text-sm bg-white">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-transparent">Aksi</label>
-                    <button type="submit" class="w-full bg-gray-900 text-white rounded-lg p-3 text-sm font-semibold hover:bg-gray-800 transition">
-                        Terapkan
-                    </button>
-                </div>
+            <div class="space-y-3">
+                @forelse($activeReservations as $reservation)
+                    @php
+                        $date  = \Carbon\Carbon::parse($reservation->reservation_date);
+                        $start = str_replace(':', '.', substr($reservation->start_time, 0, 5));
+                        $end   = str_replace(':', '.', substr($reservation->end_time, 0, 5));
+                        $badge = match($reservation->status) {
+                            'Approved' => 'bg-green-100 text-green-700',
+                            'Pending'  => 'bg-yellow-100 text-yellow-700',
+                            default    => 'bg-neutral-200 text-neutral-700',
+                        };
+                    @endphp
+                    <div class="border rounded-md px-4 py-3 flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">{{ $reservation->facility->name ?? '-' }}</p>
+                            <p class="text-sm text-neutral-600">{{ $date->translatedFormat('d M') }} · {{ $start }}–{{ $end }}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $badge }}">{{ $reservation->status }}</span>
+                    </div>
+                @empty
+                    <p class="text-sm text-neutral-400">Belum ada reservasi aktif.</p>
+                @endforelse
             </div>
-        </form>
-
-        <!-- Results Header -->
-        <div class="flex justify-between items-end mb-6">
-            <h2 class="text-xl font-bold">{{ $facilities->total() }} fasilitas</h2>
-            <p class="text-sm text-gray-500">Hari ini, {{ $today }}</p>
         </div>
 
-        <!-- Facility Grid -->
-        <div class="grid grid-cols-3 gap-6">
-            @foreach($facilities as $facility)
-            <a href="{{ route('facilities.show', $facility) }}" class="block bg-white border rounded-xl p-4 hover:shadow-md transition">
-                <!-- Image Placeholder -->
-                @if($facility->photo)
-                    <img src="{{ asset('storage/' . $facility->photo) }}" alt="{{ $facility->name }}" class="h-48 w-full object-cover rounded-lg mb-4">
-                @else
-                    <div class="bg-gray-200 h-48 rounded-lg mb-4 w-full"></div>
-                @endif
+        <!-- Laporan aktif -->
+        <div class="bg-white border rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Laporan aktif</h2>
+                <a href="{{ route('reports.index') }}" class="text-sm text-neutral-500 hover:text-black font-medium">Lihat semua</a>
+            </div>
 
-                <h3 class="font-bold text-lg">{{ $facility->name }}</h3>
-                <p class="text-sm text-gray-500 mb-6">{{ $facility->location }} · {{ $facility->capacity }} orang</p>
-
-                <div class="flex justify-between items-center text-sm">
-                    <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">
-                        Tersedia {{ $facility->available_slots }} slot
-                    </span>
-                    <span class="text-gray-500">07.00 — 20.00</span>
+            @forelse($activeReports as $report)
+                <div class="{{ $loop->last ? '' : 'mb-5 pb-5 border-b' }}">
+                    <p class="font-semibold">{{ $report->category }}</p>
+                    <p class="text-sm text-neutral-600 mb-4">
+                        {{ $report->facility->name ?? '-' }} · Dikirim {{ $report->created_at->translatedFormat('d M') }}
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <span class="bg-neutral-200 text-neutral-800 px-3 py-1 rounded-full text-xs font-semibold">
+                            {{ $report->status === 'Diproses' ? 'Dalam peninjauan' : $report->status }}
+                        </span>
+                        <a
+                            href="{{ route('reports.index') }}"
+                            class="border border-neutral-900 rounded-lg px-4 py-2 text-sm font-semibold hover:bg-neutral-50 transition"
+                        >
+                            Lihat laporan
+                        </a>
+                    </div>
                 </div>
-            </a>
-            @endforeach
+            @empty
+                <p class="text-sm text-neutral-400">Belum ada laporan aktif.</p>
+            @endforelse
         </div>
 
-        <!-- Pagination -->
-        <div class="mt-8">
-            {{ $facilities->links() }}
-        </div>
-    </main>
-
-    <!-- Thin footer bar -->
-    <div class="h-1.5 bg-gray-900 w-full"></div>
-
-</body>
-</html>
+    </div>
+</div>
+@endsection

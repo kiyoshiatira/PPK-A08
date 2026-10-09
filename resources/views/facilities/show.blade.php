@@ -1,259 +1,240 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $facility->name }} - Ruang Kampus</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans">
+@extends('layouts.app')
 
-    <!-- Navbar -->
-    <nav class="flex items-center justify-between px-8 py-4 bg-white border-b">
-        <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 bg-gray-900 rounded"></div>
-            <span class="font-bold text-lg tracking-wide">RUANG KAMPUS</span>
+@section('title', $facility->name . ' - Ruang Kampus')
+
+@section('content')
+<div class="max-w-6xl mx-auto px-8 py-8">
+
+    <!-- Breadcrumb -->
+    <p class="text-xs text-neutral-600 mb-4">
+        <a href="{{ route('dashboard') }}" class="hover:text-black">Beranda</a> /
+        <a href="{{ route('facilities.index') }}" class="hover:text-black">Fasilitas</a> /
+        <span class="text-blue-700 font-semibold">{{ $facility->name }}</span>
+    </p>
+
+    @if (session('status'))
+        <div class="mb-6 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">
+            {{ session('status') }}
         </div>
-        <div class="space-x-6 text-sm font-medium">
-            <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-black">Beranda</a>
-            <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-black">Fasilitas</a>
-            @auth
-                <form action="{{ route('logout') }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="text-gray-500 hover:text-black">Keluar</button>
-                </form>
-            @else
-                <a href="{{ route('login') }}" class="text-black">Masuk</a>
-            @endauth
-        </div>
-    </nav>
+    @endif
 
-    <main class="max-w-7xl mx-auto px-8 py-10">
-
-        <!-- Breadcrumb -->
-        <p class="text-sm text-gray-500 mb-6">
-            <a href="{{ route('dashboard') }}" class="hover:text-black">Beranda</a> /
-            <a href="{{ route('dashboard') }}" class="hover:text-black">Fasilitas</a> /
-            {{ $facility->name }}
-        </p>
-
-        @if (session('status'))
-            <div class="mb-6 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">
-                {{ session('status') }}
+    <!-- Header fasilitas -->
+    <div class="grid grid-cols-2 gap-8 mb-8 items-start">
+        @if($facility->photo)
+            <img src="{{ asset('storage/' . $facility->photo) }}" alt="{{ $facility->name }}" class="h-72 w-full object-cover rounded-2xl">
+        @else
+            <div class="h-72 w-full rounded-2xl bg-slate-200 flex items-center justify-center gap-2 text-sm text-neutral-800">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                Foto fasilitas
             </div>
         @endif
 
-        @if ($errors->any())
-            <div class="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
-                {{ $errors->first() }}
-            </div>
-        @endif
+        <div>
+            <h1 class="text-3xl font-bold mb-2">{{ $facility->name }}</h1>
 
-        <!-- Header -->
-        <div class="grid grid-cols-2 gap-10 mb-10">
-            @if($facility->photo)
-                <img src="{{ asset('storage/' . $facility->photo) }}" alt="{{ $facility->name }}" class="h-72 w-full object-cover rounded-lg">
-            @else
-                <div class="bg-gray-200 h-72 rounded-lg w-full"></div>
-            @endif
-
-            <div>
-                <h1 class="text-3xl font-bold mb-2">{{ $facility->name }}</h1>
-                <p class="text-gray-500 mb-4">{{ $facility->description }}</p>
-
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium">{{ $facility->location }}</span>
-                    <span class="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium">Kapasitas {{ $facility->capacity }}</span>
-                    <span class="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium">{{ $facility->type }}</span>
-                </div>
-
-                @guest
-                    <a
-                        href="{{ route('login') }}"
-                        class="inline-block bg-gray-900 text-white rounded-lg px-5 py-3 text-sm font-semibold hover:bg-gray-800 transition"
-                    >
-                        Masuk untuk reservasi
-                    </a>
-                @else
-                    <button
-                        type="button"
-                        onclick="document.getElementById('reservation-form').scrollIntoView({behavior: 'smooth'})"
-                        class="inline-block bg-gray-900 text-white rounded-lg px-5 py-3 text-sm font-semibold hover:bg-gray-800 transition"
-                    >
-                        Ajukan reservasi
-                    </button>
-                @endguest
-            </div>
-        </div>
-
-        <!-- Calendar -->
-        <div class="bg-white border rounded-xl shadow-sm p-6 mb-10">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Kalender ketersediaan</h2>
-                <div class="flex items-center gap-3 text-sm">
-                    @if($canGoPrev)
-                        <a
-                            href="{{ route('facilities.show', ['facility' => $facility->id, 'date' => $date->copy()->subDay()->toDateString()]) }}"
-                            class="px-2 py-1 rounded hover:bg-gray-100"
-                        >&lsaquo;</a>
-                    @else
-                        <span class="px-2 py-1 rounded text-gray-300 cursor-not-allowed">&lsaquo;</span>
-                    @endif
-                    <span class="font-medium">{{ $date->translatedFormat('d F Y') }}</span>
-                    @if($canGoNext)
-                        <a
-                            href="{{ route('facilities.show', ['facility' => $facility->id, 'date' => $date->copy()->addDay()->toDateString()]) }}"
-                            class="px-2 py-1 rounded hover:bg-gray-100"
-                        >&rsaquo;</a>
-                    @else
-                        <span class="px-2 py-1 rounded text-gray-300 cursor-not-allowed">&rsaquo;</span>
-                    @endif
-                </div>
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="bg-neutral-200 px-3 py-1 rounded-full text-xs font-semibold">{{ $facility->location }}</span>
+                <span class="bg-neutral-200 px-3 py-1 rounded-full text-xs font-semibold">Kapasitas {{ $facility->capacity }}</span>
+                <span class="bg-neutral-200 px-3 py-1 rounded-full text-xs font-semibold">{{ $facility->type }}</span>
             </div>
 
-            <div class="flex gap-3 mb-5">
-                <span class="bg-white border px-3 py-1 rounded-full text-xs font-medium">Tersedia</span>
-                <span class="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium">Tidak tersedia (sudah disetujui)</span>
-            </div>
-
-            <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
-                @foreach ($slots as $slot)
-                    @if ($slot['available'] && auth()->check())
-                        <button
-                            type="button"
-                            class="border rounded-lg p-3 text-sm text-center bg-white hover:border-gray-900 hover:bg-gray-50 transition slot-btn"
-                            data-time="{{ $slot['time'] }}"
-                        >
-                            {{ $slot['time'] }}
-                        </button>
-                    @else
-                        <div
-                            class="rounded-lg p-3 text-sm text-center {{ $slot['available'] ? 'bg-white border text-gray-800' : 'bg-gray-100 text-gray-400' }}"
-                        >
-                            {{ $slot['time'] }}
-                        </div>
-                    @endif
-                @endforeach
-            </div>
+            <p class="text-sm text-neutral-700 leading-relaxed mb-6">{{ $facility->description }}</p>
 
             @guest
-                <p class="text-xs text-gray-400 mt-4">Masuk untuk memilih slot dan mengajukan reservasi.</p>
+                <a
+                    href="{{ route('login') }}"
+                    class="inline-block bg-blue-400 hover:bg-blue-500 text-neutral-900 border border-blue-500 rounded-lg px-5 py-2.5 text-sm font-semibold transition"
+                >
+                    Masuk untuk reservasi
+                </a>
+            @else
+                <a
+                    href="#reservation-form"
+                    class="inline-block bg-blue-400 hover:bg-blue-500 text-neutral-900 border border-blue-500 rounded-lg px-5 py-2.5 text-sm font-semibold transition"
+                >
+                    Ajukan reservasi
+                </a>
             @endguest
         </div>
+    </div>
 
-        <!-- Reservation Form -->
-        @auth
-            <div id="reservation-form" class="bg-white border rounded-xl shadow-sm p-6 max-w-lg">
-                <h2 class="text-xl font-bold mb-1">Ajukan reservasi</h2>
-                <p class="text-sm text-gray-500 mb-6">Pilih slot di kalender di atas, lalu lengkapi form ini.</p>
+    <!-- Kalender ketersediaan -->
+    <div class="bg-white border rounded-2xl p-6 mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Kalender ketersediaan</h2>
 
-                <form action="{{ route('reservations.store') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="facility_id" value="{{ $facility->id }}">
-                    <input type="hidden" name="reservation_date" value="{{ $date->toDateString() }}">
+            <div class="flex items-center gap-4 text-sm font-semibold">
+                @if($canGoPrev)
+                    <a href="{{ route('facilities.show', ['facility' => $facility->id, 'date' => $date->copy()->subDay()->toDateString()]) }}" class="text-blue-700 px-1">&lsaquo;</a>
+                @else
+                    <span class="text-neutral-300 px-1 cursor-not-allowed">&lsaquo;</span>
+                @endif
 
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold mb-2">Tanggal</label>
+                <span>{{ $date->translatedFormat('d F Y') }}</span>
+
+                @if($canGoNext)
+                    <a href="{{ route('facilities.show', ['facility' => $facility->id, 'date' => $date->copy()->addDay()->toDateString()]) }}" class="text-blue-700 px-1">&rsaquo;</a>
+                @else
+                    <span class="text-neutral-300 px-1 cursor-not-allowed">&rsaquo;</span>
+                @endif
+            </div>
+        </div>
+
+        <div class="flex items-center gap-5 text-xs font-medium mb-1">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span>Tersedia</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-neutral-400"></span>Tidak tersedia</span>
+        </div>
+        <p class="text-xs text-neutral-400 mb-5">Reservasi diajukan minimal 3 hari sebelum tanggal pemakaian.</p>
+
+        <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-3">
+            @foreach($slots as $slot)
+                @php $label = str_replace(':', '.', $slot['time']); @endphp
+
+                @if($slot['available'] && auth()->check())
+                    <button
+                        type="button"
+                        data-time="{{ $slot['time'] }}"
+                        class="slot-btn border rounded-lg py-3 text-sm text-center bg-white hover:border-blue-400 hover:bg-blue-50 transition"
+                    >{{ $label }}</button>
+                @elseif($slot['available'])
+                    <div class="border rounded-lg py-3 text-sm text-center bg-white">{{ $label }}</div>
+                @else
+                    <div class="rounded-lg py-3 text-sm text-center bg-neutral-200 text-neutral-500">{{ $label }}</div>
+                @endif
+            @endforeach
+        </div>
+
+        @guest
+            <p class="text-xs text-neutral-400 mt-4">Masuk untuk memilih slot dan mengajukan reservasi.</p>
+        @endguest
+    </div>
+
+    <!-- Form reservasi -->
+    @auth
+        <div id="reservation-form" class="bg-white border rounded-2xl p-6 max-w-lg scroll-mt-6">
+            <h2 class="text-xl font-bold mb-1">Ajukan reservasi</h2>
+            <p class="text-sm text-neutral-500 mb-5">Pilih slot di kalender, lalu lengkapi form ini.</p>
+
+            @if ($errors->any())
+                <div class="mb-5 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+
+            <form action="{{ route('reservations.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="facility_id" value="{{ $facility->id }}">
+                <input type="hidden" name="reservation_date" value="{{ $date->toDateString() }}">
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Tanggal</label>
+                    <input
+                        type="text"
+                        value="{{ $date->translatedFormat('d F Y') }}"
+                        disabled
+                        class="w-full border rounded-lg p-3 text-sm bg-neutral-100 text-neutral-500"
+                    >
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Jam mulai</label>
                         <input
                             type="text"
-                            value="{{ $date->translatedFormat('d F Y') }}"
-                            disabled
-                            class="w-full border rounded-lg p-3 text-sm bg-gray-50 text-gray-500"
+                            id="start_time"
+                            name="start_time"
+                            value="{{ old('start_time') }}"
+                            placeholder="Pilih slot di atas"
+                            readonly
+                            required
+                            class="w-full border rounded-lg p-3 text-sm bg-neutral-100 @error('start_time') border-red-400 @enderror"
                         >
                     </div>
-
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-semibold mb-2">Jam mulai</label>
-                            <input
-                                type="text"
-                                id="start_time"
-                                name="start_time"
-                                value="{{ old('start_time') }}"
-                                placeholder="Pilih slot di atas"
-                                readonly
-                                required
-                                class="w-full border rounded-lg p-3 text-sm bg-gray-50 @error('start_time') border-red-400 @enderror"
-                            >
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold mb-2">Jam selesai</label>
-                            <select
-                                id="end_time"
-                                name="end_time"
-                                required
-                                class="w-full border rounded-lg p-3 text-sm bg-white @error('end_time') border-red-400 @enderror"
-                            >
-                                <option value="">Pilih jam mulai dulu</option>
-                            </select>
-                        </div>
-                    </div>
-                    @error('start_time')
-                        <p class="text-xs text-red-600 -mt-3 mb-4">{{ $message }}</p>
-                    @enderror
-
-                    <div class="mb-6">
-                        <label class="block text-sm font-semibold mb-2">Tujuan penggunaan</label>
-                        <textarea
-                            name="purpose"
-                            rows="3"
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Jam selesai</label>
+                        <select
+                            id="end_time"
+                            name="end_time"
                             required
-                            placeholder="Contoh: Rapat organisasi, presentasi tugas akhir, dll."
-                            class="w-full border rounded-lg p-3 text-sm @error('purpose') border-red-400 @enderror"
-                        >{{ old('purpose') }}</textarea>
-                        @error('purpose')
-                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
+                            class="w-full border rounded-lg p-3 text-sm bg-white @error('end_time') border-red-400 @enderror"
+                        >
+                            <option value="">Pilih jam mulai dulu</option>
+                        </select>
                     </div>
+                </div>
 
-                    <button
-                        type="submit"
-                        class="w-full bg-gray-900 text-white rounded-lg p-3 text-sm font-semibold hover:bg-gray-800 transition"
-                    >
-                        Ajukan reservasi
-                    </button>
-                </form>
-            </div>
-        @endauth
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold mb-2">Tujuan penggunaan</label>
+                    <textarea
+                        name="purpose"
+                        rows="3"
+                        required
+                        placeholder="Contoh: Rapat organisasi, presentasi tugas akhir, dll."
+                        class="w-full border rounded-lg p-3 text-sm @error('purpose') border-red-400 @enderror"
+                    >{{ old('purpose') }}</textarea>
+                </div>
 
-    </main>
+                <button
+                    type="submit"
+                    class="w-full bg-blue-400 hover:bg-blue-500 text-neutral-900 border border-blue-500 rounded-lg p-3 text-sm font-semibold transition"
+                >
+                    Ajukan reservasi
+                </button>
+            </form>
+        </div>
+    @endauth
+</div>
+@endsection
 
-    <script>
-        document.querySelectorAll('.slot-btn[data-time]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                selectSlot(btn.dataset.time);
-            });
+@push('scripts')
+<script>
+    function highlightSlot(time) {
+        document.querySelectorAll('.slot-btn').forEach(function (btn) {
+            btn.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-50');
         });
+        const active = document.querySelector('.slot-btn[data-time="' + time + '"]');
+        if (active) active.classList.add('ring-2', 'ring-blue-400', 'bg-blue-50');
+    }
 
-        function selectSlot(time) {
-            document.getElementById('start_time').value = time;
+    function fillEnd(time, selected) {
+        const endSelect = document.getElementById('end_time');
+        endSelect.innerHTML = '';
 
-            const endSelect = document.getElementById('end_time');
-            endSelect.innerHTML = '';
+        const parts = time.split(':').map(Number);
+        let cursor = parts[0] * 60 + parts[1] + 30;
 
-            const [h, m] = time.split(':').map(Number);
-            let cursorMinutes = h * 60 + m + 30;
-            const closingMinutes = 20 * 60;
-
-            while (cursorMinutes <= closingMinutes) {
-                const hh = String(Math.floor(cursorMinutes / 60)).padStart(2, '0');
-                const mm = String(cursorMinutes % 60).padStart(2, '0');
-                const label = `${hh}:${mm}`;
-                const opt = document.createElement('option');
-                opt.value = label;
-                opt.textContent = label;
-                endSelect.appendChild(opt);
-                cursorMinutes += 30;
-            }
-
-            document.querySelectorAll('.slot-btn').forEach(btn => {
-                btn.classList.remove('border-gray-900', 'bg-gray-50');
-            });
-            document.querySelector(`.slot-btn[data-time="${time}"]`)?.classList.add('border-gray-900', 'bg-gray-50');
-
-            document.getElementById('reservation-form').scrollIntoView({ behavior: 'smooth' });
+        while (cursor <= 20 * 60) {
+            const label = String(Math.floor(cursor / 60)).padStart(2, '0') + ':' + String(cursor % 60).padStart(2, '0');
+            const opt = document.createElement('option');
+            opt.value = label;
+            opt.textContent = label.replace(':', '.');
+            if (label === selected) opt.selected = true;
+            endSelect.appendChild(opt);
+            cursor += 30;
         }
-    </script>
+    }
 
-</body>
-</html>
+    function selectSlot(time) {
+        document.getElementById('start_time').value = time;
+        fillEnd(time, null);
+        highlightSlot(time);
+        document.getElementById('reservation-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    document.querySelectorAll('.slot-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            selectSlot(btn.dataset.time);
+        });
+    });
+
+    // Setelah validasi gagal: pulihkan pilihan jam & arahkan ke form
+    const startInput = document.getElementById('start_time');
+    if (startInput && startInput.value) {
+        fillEnd(startInput.value, @json(old('end_time')));
+        highlightSlot(startInput.value);
+    }
+    @if($errors->any())
+        document.getElementById('reservation-form')?.scrollIntoView();
+    @endif
+</script>
+@endpush

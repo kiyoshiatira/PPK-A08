@@ -1,19 +1,28 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\FacilityIndexController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\AdminFacilityController;
 use App\Http\Controllers\PetugasReservationController;
 use App\Http\Controllers\PetugasReportController;
+use App\Http\Controllers\PetugasFacilityController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserReservationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\AdminRekapController;
 
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+// Beranda: personal, redirect guest ke /fasilitas (lihat HomeController)
+Route::get('/', [HomeController::class, 'index'])->name('dashboard');
+
+// Fasilitas: publik, Pengunjung boleh lihat tanpa login (FR-01/FR-02)
+Route::get('/fasilitas', [FacilityIndexController::class, 'index'])->name('facilities.index');
+Route::get('/fasilitas/{facility}', [FacilityController::class, 'show'])->name('facilities.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -27,13 +36,25 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // FR-03: Ajukan Reservasi, wajib login
+    Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+
     Route::get('/reservations', [UserReservationController::class, 'index'])
-    ->name('reservations.index');
+        ->name('reservations.index');
+
+    // FR-04: Batalkan Reservasi (Mandiri)
+    Route::patch('/reservations/{reservation}/cancel', [UserReservationController::class, 'cancel'])
+        ->name('reservations.cancel');
 
     // FR-06 & FR-07 - Laporan Kerusakan (Sisi Pengguna)
     Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
     Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // FR-12: Notifikasi Sistem
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
 
     // Group Route untuk Petugas & Admin
     Route::middleware(['checkrole:petugas,admin'])->prefix('petugas')->name('petugas.')->group(function () {
@@ -47,6 +68,10 @@ Route::middleware('auth')->group(function () {
         // FR-11: Kelola Status Laporan Kerusakan
         Route::get('/reports', [PetugasReportController::class, 'index'])->name('reports.index');
         Route::patch('/reports/{report}/status', [PetugasReportController::class, 'updateStatus'])->name('reports.updateStatus');
+
+        // SRS-12: Ubah Status Fasilitas oleh Petugas
+        Route::get('/facilities', [PetugasFacilityController::class, 'index'])->name('facilities.index');
+        Route::patch('/facilities/{facility}/status', [PetugasFacilityController::class, 'updateStatus'])->name('facilities.updateStatus');
     });
 
     Route::middleware(['checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -66,9 +91,11 @@ Route::middleware('auth')->group(function () {
         Route::put('/facilities/{facility}', [AdminFacilityController::class, 'update'])->name('facilities.update');
         Route::delete('/facilities/{facility}', [AdminFacilityController::class, 'destroy'])->name('facilities.destroy');
 
+        Route::get('/rekap', [AdminRekapController::class, 'index'])->name('rekap.index');
+        Route::get('/rekap/export/csv', [AdminRekapController::class, 'exportCsv'])->name('rekap.export-csv');
+        Route::get('/rekap/export/excel', [AdminRekapController::class, 'exportExcel'])->name('rekap.export-excel');
+        Route::get('/rekap/export/pdf', [AdminRekapController::class, 'exportPdf'])->name('rekap.export-pdf');
+
     });
 
 });
-Route::get('/fasilitas/{facility}', [FacilityController::class, 'show'])->name('facilities.show');
-
-Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');

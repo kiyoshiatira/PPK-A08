@@ -117,6 +117,7 @@
         <nav class="nav-menu">
             <a href="{{ route('petugas.reservations.index') }}" class="{{ request()->routeIs('petugas.reservations.*') ? 'active' : '' }}">Antrean Reservasi</a>
             <a href="{{ route('petugas.reports.index') }}" class="{{ request()->routeIs('petugas.reports.*') ? 'active' : '' }}">Laporan Kerusakan</a>
+            <a href="{{ route('petugas.facilities.index') }}" class="{{ request()->routeIs('petugas.facilities.*') ? 'active' : '' }}">Status Fasilitas</a>
         </nav>
         <div class="user-nav-area">
             <span style="font-size: 13px; font-weight: 600;">{{ Auth::user()->name }}</span>

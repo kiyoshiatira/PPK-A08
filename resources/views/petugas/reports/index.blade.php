@@ -46,6 +46,11 @@
             ✓ {{ session('success') }}
         </div>
     @endif
+    @if(session('info'))
+        <div style="background:#e3f2fd; color:#1565c0; padding:12px 16px; border-radius:6px; margin-bottom:20px; font-size:13px; border:1px solid #bbdefb;">
+            ℹ {{ session('info') }}
+        </div>
+    @endif
     @if($errors->any())
         <div style="background:#ffebee; color:#c62828; padding:12px 16px; border-radius:6px; margin-bottom:20px; font-size:13px; border:1px solid #ffcdd2;">
             <strong>Gagal:</strong>

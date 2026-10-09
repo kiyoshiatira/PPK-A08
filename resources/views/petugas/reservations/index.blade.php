@@ -96,8 +96,18 @@
                             <span class="user-info">{{ $res->user->email }}</span>
                         </td>
                         <td>
-                            <span style="font-weight: 600; color: #1565c0; display: block;">{{ \Carbon\Carbon::parse($res->reservation_date)->translatedFormat('d M Y') }}</span>
+                            @php
+                                $isExpired = \Carbon\Carbon::parse("{$res->reservation_date} {$res->start_time}")->isPast();
+                            @endphp
+                            <span style="font-weight: 600; color: {{ $isExpired && $res->status === 'Pending' ? '#c62828' : '#1565c0' }}; display: block;">
+                                {{ \Carbon\Carbon::parse($res->reservation_date)->translatedFormat('d M Y') }}
+                            </span>
                             <span class="user-info">{{ substr($res->start_time, 0, 5) }} - {{ substr($res->end_time, 0, 5) }} WIB</span>
+                            @if($isExpired && $res->status === 'Pending')
+                                <span style="display: inline-block; margin-top: 3px; font-size: 10px; font-weight: 700; color: #c62828; background: #ffebee; border: 1px solid #ffcdd2; border-radius: 4px; padding: 1px 6px;">
+                                    ⚠️ Waktu Terlewat
+                                </span>
+                            @endif
                         </td>
                         <td>
                             <span style="color: #444; font-size: 13px;">{{ $res->purpose }}</span>
@@ -132,10 +142,19 @@
                                     <button type="button" class="btn-reject" onclick="openRejectModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">Tolak</button>
                                 </div>
                             @elseif($res->status === 'Approved')
+                                @php
+                                    $isEventEnded = \Carbon\Carbon::parse("{$res->reservation_date} {$res->end_time}")->isPast();
+                                @endphp
                                 <div class="btn-action-group" style="justify-content: flex-end;">
-                                    <button type="button" class="btn-reject" style="background: #e65100;" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
-                                        Batalkan (Darurat)
-                                    </button>
+                                    @if($isEventEnded)
+                                        <span style="color: #2e7d32; font-size: 11px; font-weight: 600; background: #e8f5e9; padding: 4px 8px; border-radius: 4px; border: 1px solid #c8e6c9;">
+                                            ✓ Selesai Terlaksana
+                                        </span>
+                                    @else
+                                        <button type="button" class="btn-reject" style="background: #e65100;" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
+                                            Batalkan (Darurat)
+                                        </button>
+                                    @endif
                                 </div>
                             @else
                                 <span style="color: #999; font-size: 12px;">Diproses oleh: {{ $res->processor->name ?? 'Sistem' }}</span>

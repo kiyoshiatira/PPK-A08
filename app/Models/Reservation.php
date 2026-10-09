@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Reservation extends Model
 {
@@ -25,4 +26,19 @@ class Reservation extends Model
     {
         return $this->belongsTo(User::class, 'processed_by');
     }
+
+
+public function canBeCancelled(): bool
+{
+    if (! in_array($this->status, ['Pending', 'Approved'])) {
+        return false;
+    }
+
+    $start = Carbon::parse(
+        Carbon::parse($this->reservation_date)->toDateString() . ' ' . $this->start_time
+    );
+
+    return $start->isFuture();
 }
+}
+

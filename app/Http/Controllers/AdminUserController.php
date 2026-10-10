@@ -55,6 +55,11 @@ class AdminUserController extends Controller
         $search = $request->input('search');
         $roleFilter = $request->input('role');
 
+        $editUser = null;
+        if ($request->has('edit')) {
+            $editUser = User::find($request->input('edit'));
+        }
+
         $pendingUsers = User::where('is_verified', false)
                             ->when($search, function ($query, $search) {
                                 return $query->where(function ($q) use ($search) {
@@ -80,7 +85,7 @@ class AdminUserController extends Controller
                         ->paginate(10, ['*'], 'users_page')
                         ->withQueryString();
 
-        return view('admin.users.create', compact('pendingUsers', 'allUsers', 'search', 'roleFilter'));
+        return view('admin.users.create', compact('pendingUsers', 'allUsers', 'search', 'roleFilter', 'editUser'));
     }
 
     public function store(Request $request)
@@ -122,5 +127,29 @@ class AdminUserController extends Controller
         $user->delete();
 
         return redirect()->back()->with('success', 'Akun berhasil dihapus.');
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:6', 
+            'role'     => 'required|in:pengguna,petugas,admin',
+        ]);
+
+        $updateData = [
+            'name'  => $validated['name'],
+            'email' => $validated['email'],
+            'role'  => $validated['role'],
+        ];
+
+        if ($request->filled('password')) {
+            $updateData['password'] = \Illuminate\Support\Facades\Hash::make($validated['password']);
+        }
+
+        $user->update($updateData);
+
+        return redirect()->route('admin.users.create')->with('success', 'Data akun berhasil diperbarui.');
     }
 }

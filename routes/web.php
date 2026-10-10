@@ -89,7 +89,7 @@ Route::middleware('auth')->group(function () {
 
         Route::patch('/users/{user}/verify', [AdminUserController::class, 'verify'])->name('users.verify');
         Route::delete('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
-
+        Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
         Route::get('/facilities', [AdminFacilityController::class, 'index'])->name('facilities.index');

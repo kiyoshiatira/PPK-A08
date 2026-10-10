@@ -28,7 +28,8 @@
         .logo-box { width: 20px; height: 20px; background-color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .logo-inner { width: 10px; height: 10px; background-color: #3b82f6; border-radius: 50%; }
         .brand-text { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
-        
+        .brand-sub { color: #60a5fa; font-weight: 500; font-size: 14px; }
+
         /* Profil di Header (Tanpa Logout) */
         .header-right { display: flex; align-items: center; gap: 15px; }
         .admin-profile { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; }
@@ -187,6 +188,7 @@
 
     <!-- Footer -->
     <footer class="footer">
+        <!-- ... (Isi Footer Tetap Sama) ... -->
         <div class="footer-grid">
             <div>
                 <div class="footer-brand">

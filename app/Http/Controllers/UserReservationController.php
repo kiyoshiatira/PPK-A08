@@ -38,4 +38,25 @@ public function index(Request $request)
 
     return view('reservations.index', compact('reservations'));
 }
+
+public function cancel(Request $request, Reservation $reservation)
+{
+    // Cuma pemilik reservasi yang boleh batalin
+    abort_unless($reservation->user_id === auth()->id(), 403);
+
+    if (! $reservation->canBeCancelled()) {
+        return back()->withErrors([
+            'cancel' => 'Reservasi ini tidak bisa dibatalkan (sudah dimulai, selesai, atau statusnya sudah berubah).',
+        ]);
+    }
+
+    $reservation->update([
+        'status' => 'Cancelled',
+        'rejection_or_cancel_reason' => $request->input('reason') ?: 'Dibatalkan oleh pemohon',
+    ]);
+
+    return redirect()
+        ->route('reservations.index')
+        ->with('success', 'Reservasi berhasil dibatalkan.');
+}
 }

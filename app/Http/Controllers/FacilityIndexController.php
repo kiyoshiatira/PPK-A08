@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Facility;
 use Carbon\Carbon;
 
-class DashboardController extends Controller
+class FacilityIndexController extends Controller
 {
     public function index(Request $request)
     {
@@ -41,10 +41,10 @@ class DashboardController extends Controller
         }
 
         $facilities = $query->paginate(6)->withQueryString();
-        
+
         // Tanggal untuk tampilan UI
         $today = Carbon::now()->translatedFormat('l, d F Y');
 
-        return view('dashboard', compact('facilities', 'types', 'locations', 'today'));
+        return view('facilities.index', compact('facilities', 'types', 'locations', 'today'));
     }
 }

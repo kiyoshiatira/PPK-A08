@@ -223,6 +223,46 @@ class PetugasReservationController extends Controller
     }
 
     /**
+     * SRS-10: Halaman Khusus Antrean Reservasi / Pembatalan Darurat
+     */
+    public function emergencyCancelIndex(Request $request)
+    {
+        $search  = $request->query('search');
+        $nowDate = now()->toDateString();
+        $nowTime = now()->format('H:i:s');
+
+        $query = Reservation::with(['user', 'facility', 'processor'])
+            ->where('status', 'Approved')
+            ->where(function ($q) use ($nowDate, $nowTime) {
+                $q->where('reservation_date', '>', $nowDate)
+                  ->orWhere(function ($sub) use ($nowDate, $nowTime) {
+                      $sub->where('reservation_date', '=', $nowDate)
+                          ->where('end_time', '>', $nowTime);
+                  });
+            })
+            ->orderBy('reservation_date', 'asc')
+            ->orderBy('start_time', 'asc');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('purpose', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('facility', function ($fq) use ($search) {
+                      $fq->where('name', 'like', "%{$search}%")
+                         ->orWhere('location', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $approvedReservations = $query->get();
+
+        return view('petugas.reservations.emergency_cancel', compact('approvedReservations', 'search'));
+    }
+
+    /**
      * FR-10: Pembatalan Darurat oleh Petugas
      * Membatalkan reservasi yang sudah Approved dengan alasan wajib
      * Menangani seluruh edge cases:

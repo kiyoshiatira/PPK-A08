@@ -28,7 +28,10 @@ class AdminFacilityController extends Controller
 
         $facilities = $query->orderBy('created_at', 'desc')->paginate(10)->appends($request->query());
 
-        $editFacility = null; 
+        $editFacility = null;
+        if ($request->has('edit')) {
+            $editFacility = Facility::find($request->input('edit'));
+        }
 
         return view('admin.facilities.index', compact('facilities', 'search', 'status', 'editFacility'));
     }

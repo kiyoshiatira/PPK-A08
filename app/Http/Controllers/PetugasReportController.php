@@ -15,7 +15,8 @@ class PetugasReportController extends Controller
      */
     public function index(Request $request)
     {
-        $statusFilter = $request->query('status', 'Baru'); // Default tampilkan Baru
+        $statusFilter = $request->query('status', '');
+        $timeFilter   = $request->query('time', 'all');
 
         $query = Report::with(['user', 'facility', 'processor'])
             ->orderBy('created_at', 'desc');
@@ -24,9 +25,30 @@ class PetugasReportController extends Controller
             $query->where('status', $statusFilter);
         }
 
-        $reports = $query->paginate(10)->withQueryString();
+        if ($timeFilter === 'today') {
+            $query->whereDate('created_at', \Carbon\Carbon::today());
+        } elseif ($timeFilter === 'this_week') {
+            $query->whereBetween('created_at', [
+                \Carbon\Carbon::now()->startOfWeek(),
+                \Carbon\Carbon::now()->endOfWeek(),
+            ]);
+        } elseif ($timeFilter === 'this_month') {
+            $query->whereMonth('created_at', \Carbon\Carbon::now()->month)
+                  ->whereYear('created_at', \Carbon\Carbon::now()->year);
+        }
 
-        return view('petugas.reports.index', compact('reports', 'statusFilter'));
+        $reports = $query->paginate(30)->withQueryString();
+
+        return view('petugas.reports.index', compact('reports', 'statusFilter', 'timeFilter'));
+    }
+
+    /**
+     * Detail panel partial for AJAX sidebar click
+     */
+    public function detail(Report $report)
+    {
+        $report->load(['user', 'facility', 'processor']);
+        return view('petugas.reports._detail', compact('report'));
     }
 
     /**

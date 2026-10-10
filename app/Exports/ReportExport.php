@@ -27,7 +27,7 @@ class ReportExport implements FromCollection, WithHeadings, WithMapping, ShouldA
 
     public function headings(): array
     {
-        return ['Tanggal Lapor', 'Fasilitas', 'Deskripsi Kerusakan'];
+        return ['Tanggal Lapor', 'Fasilitas', 'Deskripsi Kerusakan', 'Status'];
     }
 
     public function map($report): array
@@ -35,7 +35,8 @@ class ReportExport implements FromCollection, WithHeadings, WithMapping, ShouldA
         return [
             Carbon::parse($report->created_at)->format('Y-m-d H:i'),
             $report->facility->name ?? 'Fasilitas Terhapus',
-            $report->description ?? '-'
+            $report->description ?? '-',
+            $report->status ?? '-' 
         ];
     }
 

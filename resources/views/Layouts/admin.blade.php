@@ -11,7 +11,7 @@
 
         /* Top Header */
         .top-header {
-            background-color: #111827; /* Gelap */
+            background-color: #111827; 
             color: #fff;
             padding: 0 30px;
             display: flex;
@@ -30,27 +30,28 @@
         .brand-text { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
         .brand-sub { color: #60a5fa; font-weight: 500; font-size: 14px; }
 
+        /* Profil di Header (Tanpa Logout) */
         .header-right { display: flex; align-items: center; gap: 15px; }
         .admin-profile { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; }
         .avatar { width: 32px; height: 32px; background-color: #60a5fa; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
-        .btn-logout { background: transparent; border: 1px solid #374151; color: #ef4444; font-size: 12px; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
-        .btn-logout:hover { background: #fee2e2; }
 
         /* Wrapper Container */
         .app-container { display: flex; margin-top: 64px; flex: 1; }
 
-        /* Sidebar */
+        /* Sidebar - Diubah agar bisa menggunakan space-between */
         .sidebar {
             width: 250px;
-            background-color: #f9fafb;
+            background-color: #ffffff; 
             border-right: 1px solid #e5e7eb;
-            padding: 20px 0;
             display: flex;
             flex-direction: column;
+            justify-content: space-between; 
             position: fixed;
             height: calc(100vh - 64px);
             overflow-y: auto;
         }
+
+        .sidebar-menu-top { padding-top: 20px; }
 
         .nav-item {
             padding: 12px 30px;
@@ -66,17 +67,34 @@
         .nav-item:hover { background-color: #f3f4f6; color: #111; }
         .nav-item.active { background-color: #eff6ff; color: #2563eb; border-left-color: #2563eb; }
 
+        /* Area Profil dan Logout di Bawah Sidebar */
+        .sidebar-bottom {
+            padding: 15px 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sidebar-user-info { display: flex; flex-direction: column; }
+        .sidebar-user-name { font-size: 13px; font-weight: 700; color: #111; }
+        .sidebar-user-role { font-size: 11px; font-weight: 500; color: #3b82f6; }
+        
+        .btn-keluar { 
+            background: transparent; 
+            border: none; 
+            color: #ef4444; 
+            font-size: 12px; 
+            font-weight: 600;
+            cursor: pointer; 
+        }
+        .btn-keluar:hover { text-decoration: underline; }
+
         /* Main Content */
         .main-content { flex: 1; padding: 40px; margin-left: 250px; }
 
-        /* Footer */
-        .footer {
-            background-color: #111827;
-            color: #d1d5db;
-            padding: 40px 60px 20px;
-            font-size: 13px;
-            margin-left: 250px;
-        }
+        /* ... (CSS Footer, Table, Card) ... */
+        .footer { background-color: #111827; color: #d1d5db; padding: 40px 60px 20px; font-size: 13px; margin-left: 250px; }
         .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
         .footer-brand { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; font-size: 16px; margin-bottom: 15px; }
         .footer-title { color: #60a5fa; font-weight: 600; margin-bottom: 15px; font-size: 14px; }
@@ -84,6 +102,7 @@
         .footer-links a { color: #9ca3af; text-decoration: none; transition: 0.2s; }
         .footer-links a:hover { color: #fff; }
         .footer-bottom { border-top: 1px solid #374151; padding-top: 20px; text-align: center; font-size: 12px; color: #6b7280; }
+        
         .page-header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
         .btn-primary { background-color: #1d4ed8; color: #fff; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none; border: none; cursor: pointer; }
         .btn-primary:hover { background-color: #1e40af; }
@@ -108,41 +127,11 @@
         .text-red { color: #ef4444; }
 
         nav .text-muted { display: none; } 
-        .pagination { 
-            display: flex; 
-            padding-left: 0; 
-            list-style: none; 
-            gap: 6px; 
-            margin: 0; 
-            justify-content: center;
-            align-items: center;
-        }
-        .page-item .page-link { 
-            display: block; 
-            padding: 8px 14px; 
-            color: #4b5563; 
-            background-color: #fff; 
-            border: 1px solid #e5e7eb; 
-            border-radius: 6px; 
-            text-decoration: none; 
-            font-size: 13px; 
-            font-weight: 500;
-            transition: all 0.2s; 
-        }
-        .page-item.active .page-link { 
-            color: #fff; 
-            background-color: #1d4ed8; 
-            border-color: #1d4ed8; 
-        }
-        .page-item.disabled .page-link { 
-            color: #9ca3af; 
-            pointer-events: none; 
-            background-color: #f9fafb; 
-        }
-        .page-item .page-link:hover:not(.disabled) { 
-            background-color: #f3f4f6; 
-            color: #111; 
-        }
+        .pagination { display: flex; padding-left: 0; list-style: none; gap: 6px; margin: 0; justify-content: center; align-items: center; }
+        .page-item .page-link { display: block; padding: 8px 14px; color: #4b5563; background-color: #fff; border: 1px solid #e5e7eb; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+        .page-item.active .page-link { color: #fff; background-color: #1d4ed8; border-color: #1d4ed8; }
+        .page-item.disabled .page-link { color: #9ca3af; pointer-events: none; background-color: #f9fafb; }
+        .page-item .page-link:hover:not(.disabled) { background-color: #f3f4f6; color: #111; }
     </style>
 </head>
 <body>
@@ -152,31 +141,43 @@
         <div class="brand-container">
             <div class="logo-box"><div class="logo-inner"></div></div>
             <div class="brand-text">RUANG KAMPUS</div>
-            <div class="brand-sub">· Dashboard Admin</div>
         </div>
         
         <div class="header-right">
+            <!-- Menampilkan profil dan inisial di pojok kanan atas -->
             <div class="admin-profile">
-                Administrator
-                <div class="avatar">AD</div>
+                {{ Auth::user()->name ?? 'Administrator' }}
+                <div class="avatar">{{ substr(Auth::user()->name ?? 'AD', 0, 2) }}</div>
             </div>
-            <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
-                @csrf
-                <button type="submit" class="btn-logout">Logout</button>
-            </form>
         </div>
     </header>
 
     <div class="app-container">
        <!-- Sidebar Kiri -->
         <aside class="sidebar">
-            <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a>
-            
-            <a href="{{ route('admin.users.create') }}" class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Akun</a> 
-            
-            <a href="{{ route('admin.facilities.index') }}" class="nav-item {{ request()->routeIs('admin.facilities.*') ? 'active' : '' }}">Fasilitas</a>
-            
-            <a href="{{ route('admin.rekap.index') }}" class="nav-item {{ request()->routeIs('admin.rekap.*') ? 'active' : '' }}">Rekap & Export</a>
+            <div class="sidebar-menu-top">
+                <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a>
+                
+                <a href="{{ route('admin.users.create') }}" class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Akun</a> 
+                
+                <a href="{{ route('admin.facilities.index') }}" class="nav-item {{ request()->routeIs('admin.facilities.*') ? 'active' : '' }}">Fasilitas</a>
+                
+                <a href="{{ route('admin.rekap.index') }}" class="nav-item {{ request()->routeIs('admin.rekap.*') ? 'active' : '' }}">Rekap & Export</a>
+            </div>
+
+            <!-- BAGIAN BARU: Profil & Tombol Logout di Dasar Sidebar -->
+            <div class="sidebar-bottom">
+                <div class="sidebar-user-info">
+                    <span class="sidebar-user-name">{{ Auth::user()->name ?? 'admin' }}</span>
+                    <span class="sidebar-user-role">Administrator Utama</span>
+                </div>
+                
+                <!-- TOMBOL LOGOUT DIPINDAH KE SINI -->
+                <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn-keluar">Keluar</button>
+                </form>
+            </div>
         </aside>
 
         <!-- Area Konten -->
@@ -187,6 +188,7 @@
 
     <!-- Footer -->
     <footer class="footer">
+        <!-- ... (Isi Footer Tetap Sama) ... -->
         <div class="footer-grid">
             <div>
                 <div class="footer-brand">
@@ -198,14 +200,14 @@
             <div>
                 <div class="footer-title">Kontrol Utama</div>
                 <ul class="footer-links">
-                    <li><a href="#">Kelola Fasilitas</a></li>
-                    <li><a href="#">Persetujuan Akun</a></li>
+                    <li><a href="{{ route('admin.facilities.index') }}">Kelola Fasilitas</a></li>
+                    <li><a href="{{ route('admin.users.create') }}">Persetujuan Akun</a></li>
                 </ul>
             </div>
             <div>
                 <div class="footer-title">Laporan & Data</div>
                 <ul class="footer-links">
-                    <li><a href="#">Rekapitulasi Bulanan</a></li>
+                    <li><a href="{{ route('admin.rekap.index') }}">Rekapitulasi Bulanan</a></li>
                     <li><a href="#">Log Audit Sistem</a></li>
                 </ul>
             </div>

@@ -4,19 +4,47 @@
 <style>
     /* Header Page */
     .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
         margin-bottom: 24px;
+        flex-wrap: wrap;
     }
     .page-title {
         font-size: 26px;
         font-weight: 700;
-        color: #0f172a;
+        color: #171717;
         letter-spacing: -0.5px;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
     .page-subtitle {
-        color: #64748b;
+        color: #525252;
         font-size: 14px;
         line-height: 1.5;
+    }
+
+    /* Button Emergency Header Inline */
+    .btn-emergency-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffffff;
+        border: 1px solid #fed7aa;
+        color: #c2410c;
+        padding: 9px 18px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .btn-emergency-header:hover {
+        background: #fff7ed;
+        border-color: #fb923c;
     }
 
     /* Filters Bar */
@@ -24,7 +52,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 20px;
+        margin-bottom: 24px;
         flex-wrap: wrap;
     }
     .search-wrapper {
@@ -35,10 +63,11 @@
     .search-input {
         width: 100%;
         padding: 10px 14px 10px 38px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #d4d4d4;
         border-radius: 8px;
         font-size: 13.5px;
         background: #ffffff;
+        color: #171717;
         outline: none;
         transition: border-color 0.15s;
     }
@@ -51,7 +80,7 @@
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #94a3b8;
+        color: #737373;
         pointer-events: none;
         display: flex;
         align-items: center;
@@ -59,65 +88,43 @@
 
     .filter-select {
         padding: 10px 14px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid #d4d4d4;
         border-radius: 8px;
         font-size: 13.5px;
         background: #ffffff;
-        color: #334155;
+        color: #171717;
         outline: none;
         cursor: pointer;
-        min-width: 130px;
+        min-width: 140px;
     }
     .filter-select:focus {
         border-color: #2563eb;
     }
 
-    /* Button Emergency Banner Shortcut */
-    .btn-emergency-shortcut {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #ffffff;
-        border: 1px solid #fed7aa;
-        color: #c2410c;
-        padding: 10px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        margin-bottom: 24px;
-        text-decoration: none;
-        transition: all 0.15s;
-    }
-    .btn-emergency-shortcut:hover {
-        background: #fff7ed;
-        border-color: #fb923c;
-    }
-
     /* Grid Cards */
     .reservation-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
     }
 
     .reservation-card {
         background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 20px;
+        border: 1px solid #e5e5e5;
+        border-radius: 16px;
+        padding: 24px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         transition: transform 0.15s, box-shadow 0.15s;
     }
     .reservation-card:hover {
-        border-color: #cbd5e1;
+        border-color: #d4d4d4;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
     .reservation-card.conflict-card {
-        border-color: #fecaca;
+        border-color: #fca5a5;
         background: #fffdfd;
     }
 
@@ -131,7 +138,7 @@
     .facility-name {
         font-size: 16px;
         font-weight: 700;
-        color: #0f172a;
+        color: #171717;
         line-height: 1.3;
     }
 
@@ -253,22 +260,28 @@
         color: #0f172a;
     }
 
-    .btn-emergency-cancel {
+    .btn-cancel-card {
         grid-column: span 2;
         background: #fff7ed;
         border: 1px solid #fed7aa;
         color: #c2410c;
         padding: 8px 14px;
         border-radius: 6px;
-        font-size: 12.5px;
+        font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.15s;
+        transition: all 0.15s ease;
         text-align: center;
+        width: 100%;
     }
-    .btn-emergency-cancel:hover {
+    .btn-cancel-card:hover {
         background: #ffedd5;
         border-color: #fb923c;
+        color: #9a3412;
+    }
+    .btn-cancel-card:active {
+        background: #fed7aa;
+        transform: scale(0.99);
     }
 
     /* Modal / Bottom Drawer for Reject */
@@ -375,10 +388,16 @@
 </style>
 
 <div>
-    <!-- Page Header -->
+    <!-- Page Header dengan Tombol Pembatalan Darurat Sejajar -->
     <div class="page-header">
-        <h1 class="page-title">Antrean Reservasi</h1>
-        <p class="page-subtitle">Tinjau pengajuan pending, tangani pembatalan darurat, dan pastikan jadwal fasilitas tidak bertabrakan.</p>
+        <div>
+            <h1 class="page-title">Antrean Reservasi</h1>
+            <p class="page-subtitle">Tinjau pengajuan pending, tangani pembatalan darurat, dan pastikan jadwal fasilitas tidak bertabrakan.</p>
+        </div>
+        <a href="{{ route('petugas.reservations.emergency-cancel') }}" class="btn-emergency-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>Pembatalan darurat</span>
+        </a>
     </div>
 
     <!-- Alert Notifikasi Flash -->
@@ -431,12 +450,6 @@
             </select>
         </div>
     </form>
-
-    <!-- Tombol Shortcut Pembatalan Darurat -->
-    <a href="{{ route('petugas.reservations.index', ['status' => 'Approved']) }}" class="btn-emergency-shortcut">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span>Pembatalan darurat &mdash; Batalkan reservasi aktif saat darurat</span>
-    </a>
 
     <!-- Reservation Cards Grid -->
     <div class="reservation-grid">
@@ -498,14 +511,10 @@
                 <!-- Actions -->
                 <div class="card-actions">
                     @if($res->status === 'Pending')
-                        <!-- Tombol Approve -->
-                        <form action="{{ route('petugas.reservations.approve', $res->id) }}" method="POST" style="margin: 0;">
-                            @csrf
-                            @method('PATCH')
-                            <button type="submit" class="btn-approve" {{ ($res->has_conflict || $isExpired) ? 'disabled' : '' }} onclick="return confirm('Setujui reservasi {{ addslashes($res->facility->name) }} untuk {{ addslashes($res->user->name) }}?')">
-                                Approve
-                            </button>
-                        </form>
+                        <!-- Tombol Approve (Buka Custom Modal) -->
+                        <button type="button" class="btn-approve" {{ ($res->has_conflict || $isExpired) ? 'disabled' : '' }} onclick="openApproveModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}', '{{ \Carbon\Carbon::parse($res->reservation_date)->translatedFormat('d M Y') }} &bull; {{ substr($res->start_time, 0, 5) }}–{{ substr($res->end_time, 0, 5) }} WIB', '{{ addslashes($res->purpose) }}')">
+                            Approve
+                        </button>
 
                         <!-- Tombol Reject (Buka Form / Modal) -->
                         <button type="button" class="btn-reject" onclick="openRejectModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
@@ -517,8 +526,8 @@
                                 Kegiatan telah selesai terlaksana
                             </div>
                         @else
-                            <button type="button" class="btn-emergency-cancel" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
-                                Batalkan Reservasi (Darurat)
+                            <button type="button" class="btn-cancel-card" onclick="openCancelModal({{ $res->id }}, '{{ addslashes($res->facility->name) }}', '{{ addslashes($res->user->name) }}')">
+                                Batalkan
                             </button>
                         @endif
                     @else
@@ -542,6 +551,40 @@
             {{ $reservations->links() }}
         </div>
     @endif
+</div>
+
+<!-- Modal Approve Reservasi (Custom Elegant Modal) -->
+<div id="approveModal" class="reject-modal-backdrop">
+    <div class="reject-modal-card">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0;">
+                ✓
+            </div>
+            <div>
+                <h2 class="reject-modal-title" style="margin-bottom: 2px;">Setujui Reservasi</h2>
+                <p class="reject-modal-sub" style="margin-bottom: 0;">Pastikan rincian penggunaan fasilitas di bawah ini sudah sesuai.</p>
+            </div>
+        </div>
+
+        <form id="approveForm" method="POST">
+            @csrf
+            @method('PATCH')
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin: 16px 0 24px;">
+                <div style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 6px;" id="approveFacilityName">-</div>
+                <div style="font-size: 13.5px; color: #475569; margin-bottom: 4px;">
+                    Pemohon: <strong id="approveUserName" style="color: #0f172a;">-</strong>
+                </div>
+                <div style="font-size: 13.5px; color: #2563eb; font-weight: 600; margin-bottom: 6px;" id="approveSchedule">-</div>
+                <div style="font-size: 12.5px; color: #64748b; font-style: italic; background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #f1f5f9;" id="approvePurpose">-</div>
+            </div>
+
+            <div class="modal-btn-row">
+                <button type="button" class="btn-modal-cancel" onclick="closeApproveModal()">Batal</button>
+                <button type="submit" class="btn-approve" style="width: auto; padding: 9px 24px;">Ya, Setujui Reservasi</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Modal Reject Reservasi (Sesuai Desain Bagian Bawah Gambar Mockup) -->
@@ -597,6 +640,22 @@
 </div>
 
 <script>
+    function openApproveModal(id, facilityName, userName, schedule, purpose) {
+        const modal = document.getElementById('approveModal');
+        const form  = document.getElementById('approveForm');
+        
+        form.action = `/petugas/reservations/${id}/approve`;
+        document.getElementById('approveFacilityName').textContent = facilityName;
+        document.getElementById('approveUserName').textContent = userName;
+        document.getElementById('approveSchedule').innerHTML = schedule;
+        document.getElementById('approvePurpose').textContent = `"${purpose}"`;
+        modal.style.display = 'flex';
+    }
+
+    function closeApproveModal() {
+        document.getElementById('approveModal').style.display = 'none';
+    }
+
     function openRejectModal(id, facilityName, userName) {
         const modal = document.getElementById('rejectModal');
         const form  = document.getElementById('rejectForm');
@@ -627,11 +686,14 @@
 
     // Close modal when clicking outside modal box
     window.addEventListener('click', function(e) {
-        const rejectModal = document.getElementById('rejectModal');
-        const cancelModal = document.getElementById('cancelModal');
+        const approveModal = document.getElementById('approveModal');
+        const rejectModal  = document.getElementById('rejectModal');
+        const cancelModal  = document.getElementById('cancelModal');
+        if (e.target === approveModal) closeApproveModal();
         if (e.target === rejectModal) closeRejectModal();
         if (e.target === cancelModal) closeCancelModal();
     });
 </script>
 @endsection
+
 

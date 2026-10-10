@@ -223,6 +223,37 @@ class PetugasReservationController extends Controller
     }
 
     /**
+     * SRS-10: Halaman Khusus Antrean Reservasi / Pembatalan Darurat
+     */
+    public function emergencyCancelIndex(Request $request)
+    {
+        $search = $request->query('search');
+
+        $query = Reservation::with(['user', 'facility', 'processor'])
+            ->where('status', 'Approved')
+            ->orderBy('reservation_date', 'asc')
+            ->orderBy('start_time', 'asc');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('purpose', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('facility', function ($fq) use ($search) {
+                      $fq->where('name', 'like', "%{$search}%")
+                         ->orWhere('location', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $approvedReservations = $query->get();
+
+        return view('petugas.reservations.emergency_cancel', compact('approvedReservations', 'search'));
+    }
+
+    /**
      * FR-10: Pembatalan Darurat oleh Petugas
      * Membatalkan reservasi yang sudah Approved dengan alasan wajib
      * Menangani seluruh edge cases:

@@ -62,7 +62,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/reservations', [PetugasReservationController::class, 'index'])->name('reservations.index');
         Route::patch('/reservations/{reservation}/approve', [PetugasReservationController::class, 'approve'])->name('reservations.approve');
         Route::patch('/reservations/{reservation}/reject', [PetugasReservationController::class, 'reject'])->name('reservations.reject');
-        // FR-10: Pembatalan Darurat
+        // FR-10 / SRS-10: Pembatalan Darurat
+        Route::get('/reservations/emergency-cancel', [PetugasReservationController::class, 'emergencyCancelIndex'])->name('reservations.emergency-cancel');
         Route::patch('/reservations/{reservation}/cancel', [PetugasReservationController::class, 'emergencyCancel'])->name('reservations.cancel');
 
         // FR-11: Kelola Status Laporan Kerusakan

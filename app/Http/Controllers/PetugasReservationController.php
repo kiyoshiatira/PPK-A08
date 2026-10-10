@@ -227,10 +227,19 @@ class PetugasReservationController extends Controller
      */
     public function emergencyCancelIndex(Request $request)
     {
-        $search = $request->query('search');
+        $search  = $request->query('search');
+        $nowDate = now()->toDateString();
+        $nowTime = now()->format('H:i:s');
 
         $query = Reservation::with(['user', 'facility', 'processor'])
             ->where('status', 'Approved')
+            ->where(function ($q) use ($nowDate, $nowTime) {
+                $q->where('reservation_date', '>', $nowDate)
+                  ->orWhere(function ($sub) use ($nowDate, $nowTime) {
+                      $sub->where('reservation_date', '=', $nowDate)
+                          ->where('end_time', '>', $nowTime);
+                  });
+            })
             ->orderBy('reservation_date', 'asc')
             ->orderBy('start_time', 'asc');
 

@@ -2,47 +2,49 @@
 
 @section('content')
 <style>
-    .page-title { font-size: 26px; font-weight: 700; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 4px; }
-    .page-subtitle { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+    .page-title { font-size: 26px; font-weight: 700; color: #171717; letter-spacing: -0.5px; margin-bottom: 4px; }
+    .page-subtitle { color: #525252; font-size: 14px; margin-bottom: 24px; }
 
     /* Filter Bar */
     .filter-bar {
-        display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+        display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
     }
-    .search-wrapper { flex: 1; min-width: 200px; position: relative; }
+    .search-wrapper { flex: 1; min-width: 240px; position: relative; }
     .search-input {
-        width: 100%; padding: 9px 14px 9px 38px; border: 1px solid #e2e8f0;
-        border-radius: 8px; font-size: 13.5px; background: #fff; color: #0f172a; outline: none; transition: all 0.15s;
+        width: 100%; padding: 10px 14px 10px 38px; border: 1px solid #d4d4d4;
+        border-radius: 8px; font-size: 13.5px; background: #ffffff; color: #171717; outline: none; transition: all 0.15s;
     }
     .search-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
     .search-icon {
         position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-        color: #94a3b8; pointer-events: none; display: flex; align-items: center;
+        color: #737373; pointer-events: none; display: flex; align-items: center;
     }
     .filter-select {
-        padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 8px;
-        font-size: 13px; background: #fff; color: #334155; outline: none; cursor: pointer;
+        padding: 10px 14px; border: 1px solid #d4d4d4; border-radius: 8px;
+        font-size: 13.5px; background: #ffffff; color: #171717; outline: none; cursor: pointer;
+        min-width: 150px;
     }
+    .filter-select:focus { border-color: #2563eb; }
 
     /* Main Table Card */
     .card-wrap {
-        background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
-        overflow: hidden; margin-bottom: 20px;
+        background: #ffffff; border: 1px solid #e5e5e5; border-radius: 16px;
+        overflow: hidden; margin-bottom: 24px;
         box-shadow: 0 1px 3px rgba(0,0,0,.02);
     }
     .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
     .data-table th {
-        background: #f8fafc; padding: 12px 20px; font-weight: 600;
-        font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.4px; color: #64748b;
-        border-bottom: 1px solid #e2e8f0;
+        background: #fafafa; padding: 14px 22px; font-weight: 600;
+        font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #525252;
+        border-bottom: 1px solid #e5e5e5;
     }
-    .data-table td { padding: 14px 20px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    .data-table td { padding: 16px 22px; border-bottom: 1px solid #f5f5f5; color: #171717; }
     .data-table tbody tr { cursor: pointer; transition: background 0.1s; }
-    .data-table tbody tr:hover { background: #f8fafc; }
+    .data-table tbody tr:hover { background: #fafafa; }
     .data-table tbody tr.selected { background: #eff6ff; }
     .data-table tr:last-child td { border-bottom: none; }
 
-    .facility-name { font-weight: 600; color: #0f172a; }
+    .facility-name { font-weight: 600; color: #171717; }
 
     /* Status Badges */
     .sbadge {
@@ -55,49 +57,50 @@
 
     /* Selected Facility Detail Panel */
     .detail-panel {
-        background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;
+        background: #ffffff; border: 1px solid #e5e5e5; border-radius: 16px; padding: 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.02);
     }
     .detail-section-label {
-        font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-        color: #64748b; margin-bottom: 16px;
+        font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        color: #525252; margin-bottom: 16px;
     }
-    .detail-facility-name { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
-    .detail-report-note { font-size: 13px; color: #64748b; margin-bottom: 6px; }
-    .detail-warning { font-size: 12.5px; color: #64748b; background: #f8fafc; border-radius: 8px; padding: 12px 14px; margin-bottom: 20px; }
+    .detail-facility-name { font-size: 22px; font-weight: 700; color: #171717; margin-bottom: 4px; }
+    .detail-report-note { font-size: 13.5px; color: #525252; margin-bottom: 6px; }
+    .detail-warning { font-size: 13px; color: #525252; background: #f5f5f5; border: 1px solid #e5e5e5; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px; }
 
     /* Status toggle row */
     .status-toggle-label {
-        font-size: 13px; font-weight: 600; color: #0f172a; margin-bottom: 8px;
+        font-size: 14px; font-weight: 600; color: #171717; margin-bottom: 10px;
     }
     .toggle-row {
-        display: flex; align-items: center; border: 1px solid #e2e8f0;
-        border-radius: 8px; overflow: hidden; margin-bottom: 20px; width: fit-content;
+        display: flex; align-items: center; border: 1px solid #d4d4d4;
+        border-radius: 8px; overflow: hidden; margin-bottom: 24px; width: fit-content;
     }
     .toggle-btn {
-        padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
-        border: none; background: #fff; color: #64748b; transition: all 0.15s;
+        padding: 9px 24px; font-size: 13.5px; font-weight: 600; cursor: pointer;
+        border: none; background: #ffffff; color: #525252; transition: all 0.15s;
     }
-    .toggle-btn.active-btn { background: #0f172a; color: #fff; }
-    .toggle-btn:first-child { border-right: 1px solid #e2e8f0; }
+    .toggle-btn.active-btn { background: #171717; color: #ffffff; }
+    .toggle-btn:first-child { border-right: 1px solid #d4d4d4; }
 
     .action-row {
         display: flex; gap: 10px; justify-content: flex-end;
     }
     .btn-cancel-change {
-        background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;
-        padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        background: #f5f5f5; color: #404040; border: 1px solid #d4d4d4;
+        padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
         cursor: pointer; transition: all 0.15s;
     }
-    .btn-cancel-change:hover { background: #e2e8f0; }
+    .btn-cancel-change:hover { background: #e5e5e5; }
     .btn-save-change {
-        background: #2563eb; color: #fff; border: none;
-        padding: 8px 22px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        background: #2563eb; color: #ffffff; border: none;
+        padding: 9px 24px; border-radius: 8px; font-size: 13px; font-weight: 600;
         cursor: pointer; transition: all 0.15s;
     }
     .btn-save-change:hover { background: #1d4ed8; }
 
     .no-selection {
-        padding: 60px 20px; text-align: center; color: #94a3b8; font-size: 13.5px;
+        padding: 60px 20px; text-align: center; color: #737373; font-size: 13.5px;
     }
 </style>
 
@@ -139,7 +142,6 @@
             <option value="">Semua Status</option>
             <option value="Aktif" {{ $statusFilter === 'Aktif' ? 'selected' : '' }}>Aktif</option>
             <option value="Dalam Perbaikan" {{ $statusFilter === 'Dalam Perbaikan' ? 'selected' : '' }}>Dalam Perbaikan</option>
-            <option value="Nonaktif" {{ $statusFilter === 'Nonaktif' ? 'selected' : '' }}>Nonaktif</option>
         </select>
     </div>
 

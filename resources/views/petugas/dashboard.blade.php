@@ -5,12 +5,12 @@
     .page-title {
         font-size: 26px;
         font-weight: 700;
-        color: #0f172a;
+        color: #171717;
         letter-spacing: -0.5px;
         margin-bottom: 4px;
     }
     .page-subtitle {
-        color: #64748b;
+        color: #525252;
         font-size: 14px;
         margin-bottom: 28px;
         display: flex;
@@ -21,12 +21,12 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        color: #475569;
+        color: #404040;
         font-weight: 500;
-        background: #f1f5f9;
-        padding: 4px 12px;
-        border-radius: 6px;
-        border: 1px solid #e2e8f0;
+        background: #e5e5e5;
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid #d4d4d4;
         font-size: 13px;
         margin-left: auto;
     }
@@ -35,62 +35,62 @@
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
+        gap: 24px;
         margin-bottom: 28px;
     }
     .stat-card {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        background: #e5e5e5;
+        border: 1px solid #d4d4d4;
         border-radius: 12px;
-        padding: 22px 24px;
-        transition: box-shadow 0.15s;
+        padding: 24px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .stat-card:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
     }
     .stat-label {
-        font-size: 13px;
-        color: #64748b;
+        font-size: 14px;
+        color: #171717;
         font-weight: 500;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
     .stat-number {
-        font-size: 36px;
+        font-size: 38px;
         font-weight: 700;
-        color: #2563eb;
+        color: #1d4ed8;
         line-height: 1;
-        margin-bottom: 6px;
+        margin-bottom: 10px;
     }
     .stat-desc {
-        font-size: 12.5px;
-        color: #94a3b8;
+        font-size: 13.5px;
+        color: #525252;
     }
 
     /* Two Column Grid */
     .two-col {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 20px;
+        gap: 24px;
     }
 
     /* Section Card */
     .section-card {
         background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
+        border: 1px solid #e5e5e5;
+        border-radius: 16px;
         overflow: hidden;
     }
     .section-header {
-        padding: 18px 20px 14px;
+        padding: 20px 24px 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #f1f5f9;
+        border-bottom: 1px solid #f0f0f0;
     }
     .section-title {
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 700;
-        color: #0f172a;
+        color: #171717;
     }
     .count-badge {
         padding: 3px 10px;
@@ -109,11 +109,11 @@
 
     /* Queue Item Row */
     .queue-item {
-        padding: 14px 20px;
+        padding: 16px 24px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #f8fafc;
+        border-bottom: 1px solid #f5f5f5;
         gap: 12px;
         transition: background 0.1s;
     }
@@ -121,40 +121,40 @@
         border-bottom: none;
     }
     .queue-item:hover {
-        background: #f8fafc;
+        background: #fafafa;
     }
     .queue-name {
         font-weight: 600;
         font-size: 14px;
-        color: #0f172a;
+        color: #171717;
         margin-bottom: 3px;
     }
     .queue-meta {
-        font-size: 12.5px;
-        color: #64748b;
+        font-size: 13px;
+        color: #525252;
     }
     .btn-tinjau {
         background: #ffffff;
-        border: 1px solid #cbd5e1;
-        color: #334155;
-        padding: 6px 14px;
-        border-radius: 6px;
-        font-size: 12.5px;
-        font-weight: 600;
+        border: 1.5px solid #171717;
+        color: #171717;
+        padding: 7px 18px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 700;
         text-decoration: none;
         cursor: pointer;
         white-space: nowrap;
-        transition: all 0.15s;
+        transition: all 0.15s ease;
         flex-shrink: 0;
     }
     .btn-tinjau:hover {
-        background: #f1f5f9;
-        border-color: #94a3b8;
+        background: #171717;
+        color: #ffffff;
     }
     .empty-state {
-        padding: 32px 20px;
+        padding: 36px 24px;
         text-align: center;
-        color: #94a3b8;
+        color: #737373;
         font-size: 13.5px;
     }
 </style>
@@ -163,7 +163,7 @@
     <!-- Header -->
     <h1 class="page-title">Dashboard Petugas</h1>
     <p class="page-subtitle">
-        <span>Antrean terpusat diperbarui secara real-time.</span>
+        <span>Ringkasan aktivitas dan antrean operasional kampus.</span>
         <span class="realtime-date" id="liveDateContainer">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
             <span id="currentLiveDate">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</span>
@@ -179,12 +179,12 @@
         </div>
         <div class="stat-card">
             <div class="stat-label">Laporan baru</div>
-            <div class="stat-number" style="color: #dc2626;">{{ $newReportCount }}</div>
+            <div class="stat-number">{{ $newReportCount }}</div>
             <div class="stat-desc">Kerusakan belum ditangani</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Ditangani hari ini</div>
-            <div class="stat-number" style="color: #0f172a;">{{ $todayHandled }}</div>
+            <div class="stat-number">{{ $todayHandled }}</div>
             <div class="stat-desc">Laporan &amp; reservasi tuntas</div>
         </div>
     </div>

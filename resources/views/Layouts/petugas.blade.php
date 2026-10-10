@@ -4,142 +4,220 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Petugas - Ruang Kampus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* Reset & Base */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
-        body { background-color: #f4f4f5; color: #111; display: flex; flex-direction: column; min-height: 100vh; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        body { background-color: #f8fafc; color: #0f172a; min-height: 100vh; display: flex; }
 
-        /* Top Header */
-        .top-header {
-            background-color: #fff;
-            border-bottom: 1px solid #e4e4e7;
-            padding: 0 40px;
-            display: flex !important;
-            flex-direction: row !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            height: 70px;
-            width: 100%;
+        /* Main Container */
+        .app-wrapper { display: flex; width: 100%; min-height: 100vh; }
+
+        /* Sidebar Kiri Sesuai Mockup */
+        .sidebar {
+            width: 250px;
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
         }
 
-        .brand-container { 
-            display: flex !important; 
-            flex-direction: row !important;
-            align-items: center !important; 
-            gap: 12px; 
+        .sidebar-brand {
+            padding: 24px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #f1f5f9;
         }
-    
-        .logo-box { width: 22px; height: 22px; background-color: #1565c0; border-radius: 4px; }
-        .brand-text { font-weight: 700; font-size: 15px; letter-spacing: 0.5px; }
-        .badge-role { background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
 
-        /* Menu Navigasi */
-        .nav-menu { 
-            display: flex !important; 
-            flex-direction: row !important;
-            align-items: center !important;
-            gap: 24px !important; 
-            height: 100% !important;
+        .logo-box {
+            width: 28px;
+            height: 28px;
+            background: #2563eb;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .brand-text {
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: -0.2px;
+            color: #0f172a;
+        }
+
+        .sidebar-menu {
             list-style: none;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
         }
 
-        .nav-menu a {
-            text-decoration: none !important;
-            color: #52525b;
-            font-size: 13px;
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 8px;
             font-weight: 500;
+            font-size: 13.5px;
+            transition: all 0.15s ease;
+        }
+
+        .sidebar-menu a:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .sidebar-menu a.active {
+            background-color: #e2e8f0;
+            color: #2563eb;
+            font-weight: 600;
+        }
+
+        .sidebar-menu .menu-icon {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Sidebar Footer (User Info & Logout) */
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
-            height: 100%;
-            border: none !important;
-            border-bottom: 2px solid transparent !important;
-            outline: none !important;
-            background: transparent !important;
-            padding: 0 2px;
+            justify-content: space-between;
+            background: #fafafa;
+        }
+
+        .user-meta {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .nav-menu a:hover, .nav-menu a.active { 
-            color: #111 !important; 
-            border-bottom: 2px solid #1565c0 !important; 
-        }
-
-        .user-nav-area {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .user-badge {
+            font-size: 11px;
+            color: #2563eb;
+            font-weight: 500;
         }
 
         .btn-logout {
-            background: none;
-            border: 1px solid #d4d4d8;
-            padding: 6px 12px;
-            border-radius: 4px;
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 12px;
-            color: #52525b;
-            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: 0.15s;
         }
-        .btn-logout:hover { background: #f4f4f5; color: #111; }
 
-        /* Konten Utama */
-        .main-content {
+        .btn-logout:hover {
+            background: #fee2e2;
+        }
+
+        /* Content Area */
+        .content-area {
             flex: 1;
-            padding: 40px;
-            max-width: 1100px;
-            margin: 0 auto;
-            width: 100%;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow-y: auto;
         }
 
-        /* Footer */
-        .footer {
-            background-color: #27272a;
-            color: #a1a1aa;
-            padding: 25px 40px;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
+        .main-content {
+            padding: 32px 40px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
         }
-        .footer a { color: #a1a1aa; text-decoration: none; margin: 0 5px; }
-        .footer a:hover { color: #fff; }
     </style>
 </head>
 <body>
 
-    <!-- Header & Navigasi -->
-    <header class="top-header">
-        <div class="brand-container">
-            <div class="logo-box"></div>
-            <div class="brand-text">RUANG KAMPUS</div>
-            <span class="badge-role">Petugas</span>
-        </div>
-        <nav class="nav-menu">
-            <a href="{{ route('petugas.reservations.index') }}" class="{{ request()->routeIs('petugas.reservations.*') ? 'active' : '' }}">Antrean Reservasi</a>
-            <a href="{{ route('petugas.reports.index') }}" class="{{ request()->routeIs('petugas.reports.*') ? 'active' : '' }}">Laporan Kerusakan</a>
-            <a href="{{ route('petugas.facilities.index') }}" class="{{ request()->routeIs('petugas.facilities.*') ? 'active' : '' }}">Status Fasilitas</a>
-        </nav>
-        <div class="user-nav-area">
-            <span style="font-size: 13px; font-weight: 600;">{{ Auth::user()->name }}</span>
-            <form action="{{ route('logout') }}" method="POST" style="margin:0;">
-                @csrf
-                <button type="submit" class="btn-logout">Keluar</button>
-            </form>
-        </div>
-    </header>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-box">RK</div>
+                <div class="brand-text">RUANG KAMPUS</div>
+            </div>
 
-    <!-- Area Konten Dinamis -->
-    <main class="main-content">
-        @yield('content')
-    </main>
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="{{ route('petugas.reservations.index') }}" class="{{ request()->routeIs('petugas.reservations.*') ? 'active' : '' }}">
+                        <span class="menu-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                        </span>
+                        <span>Antrean Reservasi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('petugas.reports.index') }}" class="{{ request()->routeIs('petugas.reports.*') ? 'active' : '' }}">
+                        <span class="menu-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-4"/><path d="M12 10h.01"/></svg>
+                        </span>
+                        <span>Laporan Kerusakan</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('petugas.facilities.index') }}" class="{{ request()->routeIs('petugas.facilities.*') ? 'active' : '' }}">
+                        <span class="menu-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+                        </span>
+                        <span>Status Fasilitas</span>
+                    </a>
+                </li>
+            </ul>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div>RUANG KAMPUS · Panel Petugas Operasional</div>
-        <div>
-            <a href="#">Panduan</a> · <a href="#">Bantuan</a> · © 2026
+            <div class="sidebar-footer">
+                <div class="user-meta">
+                    <span class="user-name">{{ Auth::user()->name }}</span>
+                    <span class="user-badge">Petugas Operasional</span>
+                </div>
+                <form action="{{ route('logout') }}" method="POST" style="margin:0;">
+                    @csrf
+                    <button type="submit" class="btn-logout" title="Keluar dari sistem">Keluar</button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="content-area">
+            <main class="main-content">
+                @yield('content')
+            </main>
         </div>
-    </footer>
+    </div>
 
 </body>
 </html>

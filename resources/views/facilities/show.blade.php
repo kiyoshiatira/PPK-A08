@@ -174,12 +174,22 @@
                     >{{ old('purpose') }}</textarea>
                 </div>
 
-                <button
-                    type="submit"
-                    class="w-full bg-blue-400 hover:bg-blue-500 text-neutral-900 border border-blue-500 rounded-lg p-3 text-sm font-semibold transition"
-                >
-                    Ajukan reservasi
-                </button>
+                @if(strtolower($facility->status) === 'aktif')
+                    <button
+                        type="submit"
+                        class="w-full bg-blue-400 hover:bg-blue-500 text-neutral-900 border border-blue-500 rounded-lg p-3 text-sm font-semibold transition"
+                    >
+                        Ajukan reservasi
+                    </button>
+                @else
+                    <button
+                        type="button"
+                        disabled
+                        class="w-full bg-neutral-200 text-neutral-500 border rounded-lg p-3 text-sm font-semibold cursor-not-allowed"
+                    >
+                        Fasilitas Tidak Dapat Dipesan ({{ $facility->status }})
+                    </button>
+                @endif
             </form>
         </div>
     @endauth

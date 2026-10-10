@@ -14,19 +14,72 @@ class PetugasReservationController extends Controller
      */
     public function index(Request $request)
     {
-        $statusFilter = $request->query('status', 'Pending'); // Default tampilkan Pending
+        $statusFilter   = $request->query('status', 'all');
+        $search         = $request->query('search');
+        $facilityFilter = $request->query('facility_id');
+        $dateFilter     = $request->query('date_filter', 'all');
 
         $query = Reservation::with(['user', 'facility', 'processor'])
-            ->orderBy('reservation_date', 'asc')
+            ->orderBy('reservation_date', 'desc')
             ->orderBy('start_time', 'asc');
 
         if ($statusFilter && $statusFilter !== 'all') {
             $query->where('status', $statusFilter);
         }
 
-        $reservations = $query->paginate(10)->withQueryString();
+        if ($facilityFilter && $facilityFilter !== 'all') {
+            $query->where('facility_id', $facilityFilter);
+        }
 
-        return view('petugas.reservations.index', compact('reservations', 'statusFilter'));
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('purpose', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('facility', function ($fq) use ($search) {
+                      $fq->where('name', 'like', "%{$search}%")
+                         ->orWhere('location', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($dateFilter === 'today') {
+            $query->whereDate('reservation_date', now()->toDateString());
+        } elseif ($dateFilter === 'this_week') {
+            $query->whereBetween('reservation_date', [now()->startOfWeek()->toDateString(), now()->endOfWeek()->toDateString()]);
+        }
+
+        $reservations = $query->paginate(12)->withQueryString();
+
+        // Hitung konflik bentrok jadwal untuk masing-masing reservasi Pending
+        foreach ($reservations as $res) {
+            if ($res->status === 'Pending') {
+                $res->has_conflict = Reservation::where('facility_id', $res->facility_id)
+                    ->where('reservation_date', $res->reservation_date)
+                    ->where('status', 'Approved')
+                    ->where('id', '!=', $res->id)
+                    ->where(function ($q) use ($res) {
+                        $q->where('start_time', '<', $res->end_time)
+                          ->where('end_time', '>', $res->start_time);
+                    })
+                    ->exists();
+            } else {
+                $res->has_conflict = false;
+            }
+        }
+
+        $facilities = \App\Models\Facility::orderBy('name')->get();
+
+        return view('petugas.reservations.index', compact(
+            'reservations',
+            'statusFilter',
+            'search',
+            'facilityFilter',
+            'dateFilter',
+            'facilities'
+        ));
     }
 
     /**

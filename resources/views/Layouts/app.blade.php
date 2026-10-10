@@ -6,7 +6,7 @@
     <title>@yield('title', 'Ruang Kampus')</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-neutral-100 text-neutral-900 font-sans min-h-screen flex flex-col">
+<body class="m-0 p-0 bg-neutral-100 text-neutral-900 font-sans min-h-screen flex flex-col">
 
     @php
         $navClass = fn ($active) => $active ? 'text-blue-400' : 'text-white hover:text-blue-300';
@@ -20,8 +20,8 @@
     @endphp
 
     <!-- Navbar -->
-    <header class="bg-neutral-950 text-white">
-        <div class="max-w-6xl mx-auto px-8 h-14 flex items-center justify-between">
+    <header class="bg-neutral-950 text-white w-full">
+        <div class="w-full px-6 md:px-12 h-14 flex items-center justify-between">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2 font-bold tracking-wide">
                 <span class="w-5 h-5 rounded-full bg-white flex items-center justify-center">
                     <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
@@ -61,8 +61,8 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-neutral-950 text-neutral-300 text-sm">
-        <div class="max-w-6xl mx-auto px-8 py-12 grid grid-cols-4 gap-8">
+    <footer class="bg-neutral-950 text-neutral-300 text-sm w-full">
+        <div class="w-full px-6 md:px-12 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
                 <div class="flex items-center gap-2 font-bold text-white mb-3">
                     <span class="w-5 h-5 rounded-full bg-white flex items-center justify-center">
@@ -106,8 +106,9 @@
                 </ul>
             </div>
         </div>
+
         <div class="border-t border-neutral-800">
-            <p class="max-w-6xl mx-auto px-8 py-5 text-xs text-center text-neutral-400">© 2026 RUANG KAMPUS. Seluruh hak dilindungi.</p>
+            <p class="w-full px-6 md:px-12 py-5 text-xs text-center text-neutral-400">© 2026 RUANG KAMPUS. Seluruh hak dilindungi.</p>
         </div>
     </footer>
 

@@ -31,7 +31,17 @@ class PetugasFacilityController extends Controller
 
         $facilities = $query->paginate(10)->withQueryString();
 
-        return view('petugas.facilities.index', compact('facilities', 'statusFilter', 'search'));
+        $facilitiesJson = json_encode(collect($facilities->items())->map(function ($f) {
+            return [
+                'id'         => $f->id,
+                'name'       => $f->name,
+                'status'     => $f->status,
+                'location'   => $f->location,
+                'updated_at' => $f->updated_at ? $f->updated_at->format('j M, H:i') : '-',
+            ];
+        })->values());
+
+        return view('petugas.facilities.index', compact('facilities', 'facilitiesJson', 'statusFilter', 'search'));
     }
 
     /**
@@ -40,10 +50,10 @@ class PetugasFacilityController extends Controller
     public function updateStatus(Request $request, Facility $facility)
     {
         $request->validate([
-            'status' => 'required|in:Aktif,Dalam Perbaikan,Nonaktif',
+            'status' => 'required|in:Aktif,Dalam Perbaikan',
         ], [
             'status.required' => 'Status fasilitas wajib dipilih.',
-            'status.in'       => 'Pilihan status fasilitas tidak valid.',
+            'status.in'       => 'Petugas hanya berwenang mengubah status ke Aktif atau Dalam Perbaikan.',
         ]);
 
         $oldStatus = $facility->status;

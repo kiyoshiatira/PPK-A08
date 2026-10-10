@@ -12,9 +12,9 @@ class ReportController extends Controller
 {
     public function create()
     {
-        $facilities = Facility::where('status', 'aktif')
-            ->orderBy('name')
-            ->get();
+        // Pengguna harus bisa melaporkan kerusakan pada semua fasilitas,
+        // termasuk yang Dalam Perbaikan atau Nonaktif — itu justru tujuan fitur ini.
+        $facilities = Facility::orderBy('name')->get();
 
         return view('reports.create', compact('facilities'));
     }

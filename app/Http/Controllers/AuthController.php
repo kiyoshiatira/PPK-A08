@@ -41,7 +41,7 @@ class AuthController extends Controller
             return redirect()->route('admin.dashboard'); 
         }
         if (Auth::user()->role === 'petugas') {
-            return redirect()->route('petugas.reservations.index');
+            return redirect()->route('petugas.dashboard');
         }
         return redirect()->intended(route('dashboard'));
     }

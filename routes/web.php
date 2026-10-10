@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\FacilityIndexController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminUserController;
@@ -16,7 +17,12 @@ use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\AdminRekapController;
 
-Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+// Beranda: personal, redirect guest ke /fasilitas (lihat HomeController)
+Route::get('/', [HomeController::class, 'index'])->name('dashboard');
+
+// Fasilitas: publik, Pengunjung boleh lihat tanpa login (FR-01/FR-02)
+Route::get('/fasilitas', [FacilityIndexController::class, 'index'])->name('facilities.index');
+Route::get('/fasilitas/{facility}', [FacilityController::class, 'show'])->name('facilities.show');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -30,8 +36,15 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // FR-03: Ajukan Reservasi, wajib login
+    Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+
     Route::get('/reservations', [UserReservationController::class, 'index'])
-    ->name('reservations.index');
+        ->name('reservations.index');
+
+    // FR-04: Batalkan Reservasi (Mandiri)
+    Route::patch('/reservations/{reservation}/cancel', [UserReservationController::class, 'cancel'])
+        ->name('reservations.cancel');
 
     // FR-06 & FR-07 - Laporan Kerusakan (Sisi Pengguna)
     Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
@@ -87,6 +100,3 @@ Route::middleware('auth')->group(function () {
     });
 
 });
-Route::get('/fasilitas/{facility}', [FacilityController::class, 'show'])->name('facilities.show');
-
-Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');

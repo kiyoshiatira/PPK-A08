@@ -22,6 +22,7 @@
                     <th>Tanggal Lapor</th>
                     <th>Fasilitas</th>
                     <th>Deskripsi Kerusakan</th>
+                    <th>Status</th> 
                 </tr>
             </thead>
             <tbody>
@@ -30,9 +31,10 @@
                         <td>{{ \Carbon\Carbon::parse($row->created_at)->format('d M Y H:i') }}</td>
                         <td>{{ $row->facility->name ?? 'Fasilitas Terhapus' }}</td>
                         <td>{{ $row->description ?? '-' }}</td>
+                        <td>{{ $row->status ?? '-' }}</td> 
                     </tr>
                 @empty
-                    <tr><td colspan="3" style="text-align: center;">Tidak ada data laporan kerusakan</td></tr>
+                    <tr><td colspan="4" style="text-align: center;">Tidak ada data laporan kerusakan</td></tr> 
                 @endforelse
             </tbody>
         @else

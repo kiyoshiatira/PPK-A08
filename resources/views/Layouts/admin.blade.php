@@ -41,11 +41,11 @@
         /* Sidebar - Diubah agar bisa menggunakan space-between */
         .sidebar {
             width: 250px;
-            background-color: #ffffff; /* Mengubah warna background sidebar menjadi putih solid */
+            background-color: #ffffff; 
             border-right: 1px solid #e5e7eb;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Mendorong konten bawah ke dasar */
+            justify-content: space-between; 
             position: fixed;
             height: calc(100vh - 64px);
             overflow-y: auto;
@@ -93,7 +93,7 @@
         /* Main Content */
         .main-content { flex: 1; padding: 40px; margin-left: 250px; }
 
-        /* ... (SISA CSS ANDA SEPERTI FOOTER, TABLE, CARD TETAP SAMA) ... */
+        /* ... (CSS Footer, Table, Card) ... */
         .footer { background-color: #111827; color: #d1d5db; padding: 40px 60px 20px; font-size: 13px; margin-left: 250px; }
         .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
         .footer-brand { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; font-size: 16px; margin-bottom: 15px; }
@@ -141,8 +141,6 @@
         <div class="brand-container">
             <div class="logo-box"><div class="logo-inner"></div></div>
             <div class="brand-text">RUANG KAMPUS</div>
-            <!-- Anda bisa menghapus brand-sub jika ingin header benar-benar bersih seperti Dashboard Petugas -->
-            <!-- <div class="brand-sub">· Dashboard Admin</div> -->
         </div>
         
         <div class="header-right">
@@ -151,7 +149,6 @@
                 {{ Auth::user()->name ?? 'Administrator' }}
                 <div class="avatar">{{ substr(Auth::user()->name ?? 'AD', 0, 2) }}</div>
             </div>
-            <!-- FORM LOGOUT DIHAPUS DARI SINI -->
         </div>
     </header>
 
@@ -171,13 +168,11 @@
             <!-- BAGIAN BARU: Profil & Tombol Logout di Dasar Sidebar -->
             <div class="sidebar-bottom">
                 <div class="sidebar-user-info">
-                    <!-- Mengambil nama pengguna yang sedang login (atau 'admin' jika gagal) -->
                     <span class="sidebar-user-name">{{ Auth::user()->name ?? 'admin' }}</span>
-                    <!-- Mengambil role pengguna (contoh: Portal Utama) -->
                     <span class="sidebar-user-role">Administrator Utama</span>
                 </div>
                 
-                <!-- Form Logout dipindah ke sini -->
+                <!-- TOMBOL LOGOUT DIPINDAH KE SINI -->
                 <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
                     @csrf
                     <button type="submit" class="btn-keluar">Keluar</button>

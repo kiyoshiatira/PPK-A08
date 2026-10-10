@@ -26,23 +26,23 @@
 <div class="stat-grid-4">
     <div class="stat-card">
         <div class="stat-label">Jumlah user</div>
-        <div class="stat-value">{{ number_format($totalUsers, 0, ',', '.') }}</div>
-        <div class="stat-desc">+{{ $usersBulanIni }} bulan ini</div>
+        <div class="stat-value">{{ number_format($totalUsers ?? 0, 0, ',', '.') }}</div>
+        <div class="stat-desc">+{{ $usersBulanIni ?? 0 }} bulan ini</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Fasilitas</div>
-        <div class="stat-value">{{ $totalFasilitas }}</div>
-        <div class="stat-desc">{{ $fasilitasAktif }} aktif</div>
+        <div class="stat-value">{{ $totalFasilitas ?? 0 }}</div>
+        <div class="stat-desc">{{ $fasilitasAktif ?? 0 }} aktif</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Reservasi</div>
-        <div class="stat-value">{{ number_format($totalReservasi, 0, ',', '.') }}</div>
-        <div class="stat-desc">{{ $reservasiMingguIni }} minggu ini</div>
+        <div class="stat-value">{{ number_format($totalReservasi ?? 0, 0, ',', '.') }}</div>
+        <div class="stat-desc">{{ $reservasiMingguIni ?? 0 }} minggu ini</div>
     </div>
     <div class="stat-card">
         <div class="stat-label">Laporan</div>
-        <div class="stat-value">{{ number_format($totalLaporan, 0, ',', '.') }}</div>
-        <div class="stat-desc">{{ $laporanPending }} belum ditangani</div>
+        <div class="stat-value">{{ number_format($totalLaporan ?? 0, 0, ',', '.') }}</div>
+        <div class="stat-desc">{{ $laporanPending ?? 0 }} belum ditangani</div>
     </div>
 </div>
 
@@ -76,14 +76,12 @@
     <!-- Perlu Perhatian -->
     <div class="card-ui">
         @php
-            // Menggunakan variabel yang sudah ada dari controller Anda
-            $jumlahAkunPending = $usersBulanIni ?? 0; // Sesuaikan jika Anda menggunakan nama variabel lain
-            $jumlahFasilitasRusak = $fasilitasPerbaikan ?? 0;
+            $jumlahAkunPending = \App\Models\User::where('is_verified', false)->count(); 
+                                    
+            $jumlahFasilitasRusak = \App\Models\Facility::where('status', 'Dalam Perbaikan')->count();
             
-            // --- MENGGUNAKAN LAPORAN IN GENERAL ($totalLaporan) ---
-            $jumlahLaporan = $totalLaporan ?? 0; 
+            $jumlahLaporan = \App\Models\Report::where('status', 'Baru')->count(); 
             
-            // Hitung total hal yang butuh tindakan
             $totalPerhatian = $jumlahAkunPending + $jumlahFasilitasRusak + $jumlahLaporan;
         @endphp
 
@@ -100,7 +98,6 @@
         
         <ul class="attention-list">
             @if($totalPerhatian > 0)
-                <!-- Akun menunggu verifikasi -->
                 @if($jumlahAkunPending > 0)
                     <li class="attention-item">
                         <div class="dot-yellow"></div>
@@ -108,7 +105,6 @@
                     </li>
                 @endif
                 
-                <!-- Fasilitas dalam perbaikan -->
                 @if($jumlahFasilitasRusak > 0)
                     <li class="attention-item">
                         <div class="dot-red"></div>
@@ -116,15 +112,13 @@
                     </li>
                 @endif
                 
-                <!-- Laporan In General -->
                 @if($jumlahLaporan > 0)
                     <li class="attention-item">
                         <div class="dot-yellow"></div>
-                        <span><strong>{{ $jumlahLaporan }}</strong> laporan masuk</span>
+                        <span><strong>{{ $jumlahLaporan }}</strong> laporan belum ditangani</span>
                     </li>
                 @endif
             @else
-                <!-- Pesan jika tidak ada masalah sama sekali -->
                 <li class="attention-item" style="color: #16a34a; font-weight: 500; font-size: 13px;">
                     ✅ Tidak ada masalah yang memerlukan perhatian saat ini. Operasional berjalan lancar.
                 </li>

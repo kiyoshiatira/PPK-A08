@@ -10,50 +10,92 @@
     <style>
         /* Reset & Base */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        body { background-color: #f8fafc; color: #0f172a; min-height: 100vh; display: flex; }
+        body { background-color: #f5f5f5; color: #171717; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* Top Navbar */
+        .top-navbar {
+            background: #0a0a0a;
+            color: #ffffff;
+            height: 56px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #262626;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 14.5px;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .logo-circle-outer {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-circle-inner {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #3b82f6;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-user-name {
+            font-size: 13.5px;
+            color: #d4d4d4;
+            font-weight: 500;
+        }
+
+        .nav-user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* Main Container */
-        .app-wrapper { display: flex; width: 100%; min-height: 100vh; }
+        .app-wrapper { display: flex; width: 100%; flex: 1; min-height: calc(100vh - 56px); }
 
-        /* Sidebar Kiri Sesuai Mockup */
+        /* Sidebar Kiri */
         .sidebar {
             width: 250px;
             background: #ffffff;
-            border-right: 1px solid #e2e8f0;
+            border-right: 1px solid #e5e5e5;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
             position: sticky;
-            top: 0;
-            height: 100vh;
-        }
-
-        .sidebar-brand {
-            padding: 24px 20px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .logo-box {
-            width: 28px;
-            height: 28px;
-            background: #2563eb;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .brand-text {
-            font-weight: 700;
-            font-size: 15px;
-            letter-spacing: -0.2px;
-            color: #0f172a;
+            top: 56px;
+            height: calc(100vh - 56px);
         }
 
         .sidebar-menu {
@@ -155,23 +197,40 @@
         }
 
         .main-content {
-            padding: 32px 40px;
-            max-width: 1200px;
+            padding: 32px 48px;
+            max-width: 1560px;
             width: 100%;
             margin: 0 auto;
         }
     </style>
 </head>
 <body>
+    @php
+        $initials = auth()->check()
+            ? collect(explode(' ', trim(auth()->user()->name)))
+                ->filter()->take(2)
+                ->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))
+                ->implode('')
+            : 'P';
+    @endphp
+
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+        <a href="{{ route('petugas.dashboard') }}" class="nav-brand">
+            <span class="logo-circle-outer">
+                <span class="logo-circle-inner"></span>
+            </span>
+            <span>RUANG KAMPUS</span>
+        </a>
+        <div class="nav-user">
+            <span class="nav-user-name">{{ Auth::user()->name }}</span>
+            <span class="nav-user-avatar">{{ $initials }}</span>
+        </div>
+    </header>
 
     <div class="app-wrapper">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="logo-box">RK</div>
-                <div class="brand-text">RUANG KAMPUS</div>
-            </div>
-
             <ul class="sidebar-menu">
                 <li>
                     <a href="{{ route('petugas.dashboard') }}" class="{{ request()->routeIs('petugas.dashboard') ? 'active' : '' }}">

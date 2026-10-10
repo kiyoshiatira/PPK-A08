@@ -57,20 +57,18 @@
     </div>
 </div>
 
-<!-- 2. Tabel Semua Akun (Menggantikan Semua Pengguna) -->
+<!-- 2. Tabel Semua Akun -->
 <div class="card-ui">
     <div class="card-title">Semua akun</div>
     <!-- Filter & Search Bar Section -->
     <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
         <form action="{{ route('admin.users.create') }}" method="GET" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
             
-            <!-- Search Bar Input -->
             <div style="flex: 1; min-width: 240px;">
                 <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px;">Cari Pengguna</label>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari berdasarkan nama atau email..." style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none;">
             </div>
 
-            <!-- Filter Berdasarkan Role -->
             <div style="width: 200px;">
                 <label style="display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px;">Filter Peran (Role)</label>
                 <select name="role" style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: #fff;">
@@ -81,7 +79,6 @@
                 </select>
             </div>
 
-            <!-- Tombol Aksi -->
             <div style="display: flex; gap: 8px; align-items: flex-end; margin-top: 22px;">
                 <button type="submit" style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer;">Cari</button>
                 <a href="{{ route('admin.users.create') }}" style="padding: 10px 16px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block;">Reset</a>
@@ -89,6 +86,7 @@
 
         </form>
     </div>
+    
     <table class="table-ui">
         <thead>
             <tr>
@@ -113,6 +111,9 @@
                         @endif
                     </td>
                     <td style="text-align: right;">
+                        
+                        <a href="{{ route('admin.users.create', ['edit' => $user->id]) }}#form-tambah" class="action-link text-blue">Ubah</a>
+                        
                         <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $user->name }}?');" style="display: inline-block;">
                             @csrf
                             @method('DELETE')
@@ -132,39 +133,50 @@
     </div>
 </div>
 
-<!-- 3. Form Tambah Akun Langsung -->
+<!-- 3. Form Dinamis Tambah/Ubah Akun -->
 <div id="form-tambah" class="card-ui">
-    <div class="card-title" style="margin-bottom: 5px;">Tambah akun langsung</div>
-    <p style="color: #6b7280; font-size: 13px; margin-bottom: 20px;">Daftarkan akun sivitas akademika secara manual ke database sistem.</p>
+    <div class="card-title" style="margin-bottom: 5px;">
+        {{ isset($editUser) ? 'Ubah data akun' : 'Tambah akun langsung' }}
+    </div>
+    <p style="color: #6b7280; font-size: 13px; margin-bottom: 20px;">
+        {{ isset($editUser) ? 'Perbarui data nama, email, atau peran akun yang telah terdaftar.' : 'Daftarkan akun sivitas akademika secara manual ke database sistem.' }}
+    </p>
     
-    <form action="{{ route('admin.users.store') }}" method="POST">
+    <form action="{{ isset($editUser) ? route('admin.users.update', $editUser->id) : route('admin.users.store') }}" method="POST">
         @csrf
+        @if(isset($editUser))
+            @method('PUT')
+        @endif
+        
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label">Nama Lengkap</label>
-                <input type="text" name="name" class="form-control" placeholder="Masukkan nama lengkap..." required>
+                <input type="text" name="name" class="form-control" value="{{ $editUser->name ?? old('name') }}" placeholder="Masukkan nama lengkap..." required>
             </div>
             <div class="form-group">
                 <label class="form-label">Email Kampus</label>
-                <input type="email" name="email" class="form-control" placeholder="sivitas@student.ac.id" required>
+                <input type="email" name="email" class="form-control" value="{{ $editUser->email ?? old('email') }}" placeholder="sivitas@student.ac.id" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Peran</label>
                 <select name="role" class="form-control" required>
-                    <option value="pengguna">Pengguna</option>
-                    <option value="petugas">Petugas</option>
-                    <option value="admin">Admin</option>
+                    <option value="pengguna" {{ (isset($editUser) && $editUser->role == 'pengguna') ? 'selected' : '' }}>Pengguna</option>
+                    <option value="petugas" {{ (isset($editUser) && $editUser->role == 'petugas') ? 'selected' : '' }}>Petugas</option>
+                    <option value="admin" {{ (isset($editUser) && $editUser->role == 'admin') ? 'selected' : '' }}>Admin</option>
                 </select>
             </div>
         </div>
         
         <div class="form-group" style="margin-top: 10px;">
-            <label class="form-label">Password Sementara</label>
-            <input type="password" name="password" class="form-control" placeholder="Masukkan password untuk pengguna baru..." required>
+            <label class="form-label">{{ isset($editUser) ? 'Ubah Password Baru (Opsional)' : 'Password Sementara' }}</label>
+            <input type="password" name="password" class="form-control" placeholder="{{ isset($editUser) ? 'Kosongkan jika tidak ingin mengubah password...' : 'Masukkan password untuk pengguna baru...' }}" {{ isset($editUser) ? '' : 'required' }}>
         </div>
 
-        <div style="text-align: right; margin-top: 20px;">
-            <button type="submit" class="btn-primary">Tambah akun</button>
+        <div style="display: flex; justify-content: flex-end; margin-top: 30px; gap: 10px;">
+            @if(isset($editUser))
+                <a href="{{ route('admin.users.create') }}" class="btn-outline-danger" style="text-decoration: none;">Batal</a>
+            @endif
+            <button type="submit" class="btn-primary">{{ isset($editUser) ? 'Simpan perubahan' : 'Tambah akun' }}</button>
         </div>
     </form>
 </div>

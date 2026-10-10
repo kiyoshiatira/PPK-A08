@@ -128,7 +128,7 @@
         </tbody>
     </table>
     <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
-        {{ $users->appends(request()->query())->links('pagination::bootstrap-4') }}
+        {{ $allUsers->appends(request()->query())->links('pagination::bootstrap-4') }}
     </div>
 </div>
 

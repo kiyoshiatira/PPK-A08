@@ -2,49 +2,82 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Facility;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class FacilityIndexController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil data unik untuk dropdown filter
-        $types = Facility::select('type')->distinct()->pluck('type');
+        $capacityOptions = [
+            '1-30'   => 'Kecil (≤ 30 orang)',
+            '31-100' => 'Sedang (31–100 orang)',
+            '101-'   => 'Besar (> 100 orang)',
+        ];
+
+        $sortOptions = [
+            'name_asc'      => 'Urut: Nama A–Z',
+            'name_desc'     => 'Urut: Nama Z–A',
+            'capacity_asc'  => 'Urut: Kapasitas terkecil',
+            'capacity_desc' => 'Urut: Kapasitas terbesar',
+        ];
+
+        // Data dropdown filter
+        $types     = Facility::select('type')->distinct()->pluck('type');
         $locations = Facility::select('location')->distinct()->pluck('location');
 
-        // Query dasar fasilitas
+        // Slide hero: fasilitas dikelompokkan per lokasi
+        $buildings = Facility::selectRaw('location, count(*) as total, max(photo) as photo')
+            ->groupBy('location')
+            ->orderBy('location')
+            ->get();
+
         $query = Facility::query();
 
-        // FR-02: Filter Berdasarkan Nama
+        // FR-02: cari nama, tipe, lokasi, kapasitas
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%' . $request->input('search') . '%');
+        }
+        if ($request->filled('type') && $request->input('type') !== 'Semua tipe') {
+            $query->where('type', $request->input('type'));
+        }
+        if ($request->filled('location') && $request->input('location') !== 'Semua lokasi') {
+            $query->where('location', $request->input('location'));
         }
 
-        // FR-02: Filter Berdasarkan Tipe
-        if ($request->filled('type') && $request->type !== 'Semua tipe') {
-            $query->where('type', $request->type);
+        $capacity = (string) $request->input('capacity');
+        if (array_key_exists($capacity, $capacityOptions)) {
+            [$min, $max] = explode('-', $capacity);
+            $query->where('capacity', '>=', (int) $min);
+            if ($max !== '') {
+                $query->where('capacity', '<=', (int) $max);
+            }
         }
 
-        // FR-02: Filter Berdasarkan Lokasi
-        if ($request->filled('location') && $request->location !== 'Semua lokasi') {
-            $query->where('location', $request->location);
-        }
-
-        // FR-02: Filter Kapasitas Minimum & Maksimum
+        // Dipertahankan dari versi lama: min/maks kapasitas lewat query string
+        // (?min_capacity=&max_capacity=). Dropdown rentang di UI tetap jalan berdampingan.
         if ($request->filled('min_capacity') && $request->min_capacity > 0) {
-            $query->where('capacity', '>=', $request->min_capacity);
+            $query->where('capacity', '>=', (int) $request->min_capacity);
         }
         if ($request->filled('max_capacity') && $request->max_capacity > 0) {
-            $query->where('capacity', '<=', $request->max_capacity);
+            $query->where('capacity', '<=', (int) $request->max_capacity);
         }
 
-        $facilities = $query->paginate(6)->withQueryString();
+        match ($request->input('sort')) {
+            'name_desc'     => $query->orderByDesc('name'),
+            'capacity_asc'  => $query->orderBy('capacity'),
+            'capacity_desc' => $query->orderByDesc('capacity'),
+            default         => $query->orderBy('name'),
+        };
 
-        // Tanggal untuk tampilan UI
-        $today = Carbon::now()->translatedFormat('l, d F Y');
+        $facilities = $query->paginate(9)->withQueryString()->fragment('daftar');
 
-        return view('facilities.index', compact('facilities', 'types', 'locations', 'today'));
+        $today = Carbon::now()->locale('id')->translatedFormat('d F Y');
+
+        return view('facilities.index', compact(
+            'facilities', 'types', 'locations', 'buildings',
+            'capacityOptions', 'sortOptions', 'today'
+        ));
     }
 }

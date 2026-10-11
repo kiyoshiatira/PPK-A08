@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-bold">Buat akun</h1>
         <p class="text-neutral-600 text-sm mt-1 mb-6">Daftar dengan identitas kampus Anda.</p>
 
-        <form action="{{ route('register.attempt') }}" method="POST">
+        <form action="{{ route('register.attempt') }}" method="POST" novalidate data-validate>
             @csrf
 
             <div class="mb-4">
@@ -20,12 +20,14 @@
                     value="{{ old('name') }}"
                     placeholder="Nama lengkap"
                     required
+                    minlength="3"
+                    maxlength="255"
+                    autocomplete="name"
                     autofocus
+                    data-label="Nama lengkap"
                     class="w-full bg-neutral-100 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 @error('name') border-red-400 @enderror"
                 >
-                @error('name')
-                    <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
-                @enderror
+                <p data-error="name" class="text-xs text-red-600 mt-1.5 {{ $errors->has('name') ? '' : 'hidden' }}">{{ $errors->first('name') }}</p>
             </div>
 
             <div class="mb-4">
@@ -37,11 +39,12 @@
                     value="{{ old('email') }}"
                     placeholder="nama@kampus.ac.id"
                     required
+                    maxlength="255"
+                    autocomplete="username"
+                    data-label="Email kampus"
                     class="w-full bg-neutral-100 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 @error('email') border-red-400 @enderror"
                 >
-                @error('email')
-                    <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
-                @enderror
+                <p data-error="email" class="text-xs text-red-600 mt-1.5 {{ $errors->has('email') ? '' : 'hidden' }}">{{ $errors->first('email') }}</p>
             </div>
 
             <div class="mb-4">
@@ -52,11 +55,12 @@
                     name="password"
                     placeholder="Minimal 8 karakter"
                     required
+                    minlength="8"
+                    autocomplete="new-password"
+                    data-label="Kata sandi"
                     class="w-full bg-neutral-100 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 @error('password') border-red-400 @enderror"
                 >
-                @error('password')
-                    <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
-                @enderror
+                <p data-error="password" class="text-xs text-red-600 mt-1.5 {{ $errors->has('password') ? '' : 'hidden' }}">{{ $errors->first('password') }}</p>
             </div>
 
             <div class="mb-4">
@@ -67,8 +71,12 @@
                     name="password_confirmation"
                     placeholder="Ulangi kata sandi"
                     required
+                    autocomplete="new-password"
+                    data-label="Konfirmasi kata sandi"
+                    data-match="password"
                     class="w-full bg-neutral-100 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
                 >
+                <p data-error="password_confirmation" class="text-xs text-red-600 mt-1.5 hidden"></p>
             </div>
 
             <p class="text-xs text-neutral-400 mb-5">
@@ -89,3 +97,7 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/form-validation.js') }}"></script>
+@endpush

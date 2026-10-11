@@ -14,7 +14,7 @@
             </div>
         @endif
 
-        <form action="{{ route('login.attempt') }}" method="POST">
+        <form action="{{ route('login.attempt') }}" method="POST" novalidate data-validate>
             @csrf
 
             <div class="mb-4">
@@ -26,12 +26,13 @@
                     value="{{ old('email') }}"
                     placeholder="nama@kampus.ac.id"
                     required
+                    maxlength="255"
+                    autocomplete="username"
                     autofocus
+                    data-label="Email kampus"
                     class="w-full bg-neutral-100 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 @error('email') border-red-400 @enderror"
                 >
-                @error('email')
-                    <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
-                @enderror
+                <p data-error="email" class="text-xs text-red-600 mt-1.5 {{ $errors->has('email') ? '' : 'hidden' }}">{{ $errors->first('email') }}</p>
             </div>
 
             <div class="mb-4">
@@ -42,11 +43,11 @@
                     name="password"
                     placeholder="••••••••"
                     required
+                    autocomplete="current-password"
+                    data-label="Kata sandi"
                     class="w-full bg-neutral-100 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900 @error('password') border-red-400 @enderror"
                 >
-                @error('password')
-                    <p class="text-xs text-red-600 mt-1.5">{{ $message }}</p>
-                @enderror
+                <p data-error="password" class="text-xs text-red-600 mt-1.5 {{ $errors->has('password') ? '' : 'hidden' }}">{{ $errors->first('password') }}</p>
             </div>
 
             <label class="flex items-center text-sm text-neutral-600 mb-6">
@@ -64,3 +65,7 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/form-validation.js') }}"></script>
+@endpush

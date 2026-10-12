@@ -34,6 +34,7 @@
                         <!-- Form Verifikasi -->
                         <form action="{{ route('admin.users.verify', $user->id) }}" method="POST" style="display: inline-block;">
                             @csrf
+                            @method('PATCH')
                             <button type="submit" class="action-link text-blue" style="background: transparent; border: none; cursor: pointer; padding: 0;">Verifikasi</button>
                         </form>
                         
